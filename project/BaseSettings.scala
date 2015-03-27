@@ -38,6 +38,7 @@ object BaseSettings extends sbtassembly.AssemblyKeys {
       sbtPlugin := false,
       resolvers := ResolverSettings.resolvers,
       assemblyMergeStrategy in assembly := {
+        case "UnusedStubClass.class"                                             => MergeStrategy.first
         case "application.conf"                                                  => MergeStrategy.concat
         case "package-info.class"                                                => MergeStrategy.concat
         case PathList(ps @ _*) if ps.last endsWith "package-info.class"          => MergeStrategy.discard
