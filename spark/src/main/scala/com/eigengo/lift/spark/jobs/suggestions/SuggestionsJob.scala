@@ -31,6 +31,11 @@ object SuggestionsJob {
   val weightedMuscleGroups = MuscleGroups.supportedMuscleGroups.zip(0d to 1 by 1d / MuscleGroups.supportedMuscleGroups.size)
 }
 
+/**
+ * TODO: This is a hack to make the VectorUDT available in our code
+ * It is required as input to most ML algorithms in the pipeline api
+ * But since the api is still experimental it has restrictive access
+ */
 object VectorType extends HashingTF {
   val VectorUDT: DataType = outputDataType
 }
@@ -96,13 +101,13 @@ class SuggestionsJob() extends Batch[Unit, Unit] with HttpClient with ExerciseMa
             dataFrame,
             ParamMap(
               ParamPair(UserFilter.userIdParam, u),
-              ParamPair(MuscleGroupKeysFeatureExtractor.useHistoryParam, 5)))
+              ParamPair(MuscleGroupKeysFeatureExtractor.useHistoryParam, historySize)))
 
           val intensityModel = intensityPipeline.fit(
             dataFrame,
             ParamMap(
               ParamPair(UserFilter.userIdParam, u),
-              ParamPair(IntensityFeatureExtractor.useHistoryParam, 5)))
+              ParamPair(IntensityFeatureExtractor.useHistoryParam, historySize)))
 
           //TODO: Prepate test dataset
           //TODO: And use futureSizeParameter

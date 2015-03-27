@@ -43,7 +43,7 @@ trait Driver {
     val sc = new SparkContext(additionalConfig(config, conf))
 
     val files = new java.io.File("/app").listFiles
-    files.foreach{f => sc.addJar(f.getAbsolutePath)}
+    files.foreach(f => sc.addJar(f.getAbsolutePath))
 
     sc
   }
