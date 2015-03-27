@@ -56,15 +56,13 @@ dockerfile in docker := {
   val libDirectory = file("./lib/")
   val libDirectoryPath = libDirectory.getAbsolutePath
 
+  //TODO: All dependencies in one directory so they can be sent to Docker
+  //Unfortunately docker has limit on number of commands so this needs to be done if we don't want to use assembly
   val createDir = s"mkdir $libDirectoryPath"
   createDir !
 
   val copyCmd = classpath.files.map(_.getAbsolutePath).mkString("cp -p ", " ", s" $libDirectoryPath")
   copyCmd !
-
-  println("MAINMAIN " + mainclass)
-  println("CLASSPATHSTRING " + classpathString)
-  println("ARTIFACT " + artifact)
 
   new Dockerfile {
     from("martinz/spark-singlenode:latest")

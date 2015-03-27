@@ -9,8 +9,17 @@ import org.apache.spark.rdd.RDD
 import scala.util.Try
 
 //TODO: Move to a separate job?
+/**
+ * Functions to retrieve set of users
+ */
 object EligibleUsers {
 
+  /**
+   * Retrieve users eligible for suggestions job
+   * @param events akka journal events
+   * @param sessionEndedBefore include users whose session ended before
+   * @return UserIds
+   */
   def getEligibleUsers(events: RDD[(JournalKey, Any)], sessionEndedBefore: Long): RDD[String] = {
     events
       .flatMap {
