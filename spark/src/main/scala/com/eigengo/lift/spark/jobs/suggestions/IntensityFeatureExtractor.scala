@@ -12,6 +12,9 @@ object IntensityFeatureExtractor extends Params {
   val useHistoryParam = new Param[Int](this, "useHistory", "use history")
 }
 
+/**
+ * Extracts features from exercise intensity history data
+ */
 class IntensityFeatureExtractor extends Transformer {
   import IntensityFeatureExtractor._
 

@@ -9,6 +9,9 @@ import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
 
+/**
+ * Denormalizes muscle group keys from normalized <0, 1> representation to a string
+ */
 class MuscleGroupsKeysDenormalizer extends Transformer {
   override def transform(dataset: DataFrame, paramMap: ParamMap): DataFrame =
     dataset

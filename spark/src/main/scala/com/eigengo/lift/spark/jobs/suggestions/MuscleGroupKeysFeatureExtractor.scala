@@ -14,6 +14,9 @@ object MuscleGroupKeysFeatureExtractor extends Params {
    val useHistoryParam = new Param[Int](this, "useHistory", "use history")
  }
 
+/**
+ * Extracts muscle group features from normalized muscle group history
+ */
 class MuscleGroupKeysFeatureExtractor extends Transformer {
    import MuscleGroupKeysFeatureExtractor._
 

@@ -10,6 +10,9 @@ object UserFilter extends Params {
   val userIdParam = new Param[String](this, "userId", "user id")
 }
 
+/**
+ * Filters single user from the journal history data
+ */
 class UserFilter extends Transformer {
   import UserFilter._
 

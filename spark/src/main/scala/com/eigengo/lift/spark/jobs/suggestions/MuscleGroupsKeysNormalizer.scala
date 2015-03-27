@@ -9,6 +9,9 @@ import org.apache.spark.sql.types._
 
 import scala.collection.mutable.ArrayBuffer
 
+/**
+ * Normalizes muscle group keys strings to double representation <0, 1>
+ */
 class MuscleGroupsKeysNormalizer extends Transformer {
   override def transform(dataset: DataFrame, paramMap: ParamMap): DataFrame =
     dataset
