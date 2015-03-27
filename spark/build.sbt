@@ -27,10 +27,7 @@ libraryDependencies ++= Seq(
   spark.core,
   spark.mllib,
   spray.client,
-  //hadoop.client,
   scodec_bits
-  //spark.streaming,
-  //spark.streamingKafka
 )
 
 import DockerKeys._
@@ -42,8 +39,6 @@ dockerSettings
 mainClass in assembly := Some("com.eigengo.lift.spark.Spark")
 
 docker <<= (docker dependsOn Keys.`package`.in(Compile, packageBin))
-
-retrieveManaged := true
 
 dockerfile in docker := {
   val artifact = artifactPath.in(Compile, packageBin).value
