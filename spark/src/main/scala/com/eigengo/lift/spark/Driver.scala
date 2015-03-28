@@ -41,7 +41,10 @@ trait Driver {
       .setMaster(master)
 
     val sc = new SparkContext(additionalConfig(config, conf))
-    sc.addJar("/app/spark-assembly-1.0.0-SNAPSHOT.jar")
+
+    val files = new java.io.File("/app").listFiles
+    files.foreach(f => sc.addJar(f.getAbsolutePath))
+
     sc
   }
 

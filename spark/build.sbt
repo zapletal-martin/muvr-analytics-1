@@ -12,6 +12,7 @@
  */
 
 import Dependencies._
+import Keys._
 
 Build.Settings.project
 
@@ -26,10 +27,7 @@ libraryDependencies ++= Seq(
   spark.core,
   spark.mllib,
   spray.client,
-  hadoop.client,
   scodec_bits
-  //spark.streaming,
-  //spark.streamingKafka
 )
 
 import DockerKeys._
@@ -40,17 +38,35 @@ dockerSettings
 
 mainClass in assembly := Some("com.eigengo.lift.spark.Spark")
 
-docker <<= (docker dependsOn assembly)
+docker <<= (docker dependsOn Keys.`package`.in(Compile, packageBin))
 
 dockerfile in docker := {
-  val artifact = (outputPath in assembly).value
+  val artifact = artifactPath.in(Compile, packageBin).value
   val artifactTargetPath = s"/app/${artifact.name}"
+  val classpath = (managedClasspath in Compile).value
+  val mainclass = mainClass.in(Compile, packageBin).value.getOrElse(sys.error("Expected exactly one main class"))
+
+  val classpathString = "/app/*" //classpath.files.map("/app/" + _.getName).mkString(":") + ":" + artifactTargetPath
+
+  val libDirectory = file("./lib/")
+  val libDirectoryPath = libDirectory.getAbsolutePath
+
+  //TODO: All dependencies in one directory so they can be sent to Docker
+  //Unfortunately docker has limit on number of commands so this needs to be done if we don't want to use assembly
+  val createDir = s"mkdir $libDirectoryPath"
+  createDir !
+
+  val copyCmd = classpath.files.map(_.getAbsolutePath).mkString("cp -p ", " ", s" $libDirectoryPath")
+  copyCmd !
+
   new Dockerfile {
     from("martinz/spark-singlenode:latest")
+
     add(artifact, artifactTargetPath)
-    //run("sh", "/root/spark_singlenode_files/default_cmd")
-      //entryPoint("java", "-jar", artifactTargetPath)
-    entryPoint("sh", "/root/spark_singlenode_files/default_cmd", artifactTargetPath)
+
+    add(libDirectory, "/app/")
+    //entryPoint("java", "-jar", artifactTargetPath)
+    entryPoint("sh", "/root/spark_singlenode_files/default_cmd", classpathString, mainclass)
   }
 }
 
