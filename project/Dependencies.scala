@@ -59,6 +59,8 @@ object Dependencies {
   object akka {
     val version = "0.2"
 
+    val kryo                  = "com.github.romix.akka"  %% "akka-kryo-serialization"       % "0.3.2"
+
     val analytics_cassandra = ("com.github.krasserm" %% "akka-analytics-cassandra" % version)
       .exclude("com.typesafe.akka", "akka-actor_2.10")
       .exclude("com.esotericsoftware.minlog", "minlog")
@@ -72,7 +74,7 @@ object Dependencies {
       .exclude("com.google.guava", "guava")
   }
 
-  // Testing
-  val scalatest        = "org.scalatest"          %% "scalatest"    % "2.2.4"
-  val scalacheck       = "org.scalacheck"         %% "scalacheck"   % "1.12.2"
+  val cassandra_driver = "com.datastax.cassandra" % "cassandra-driver-core" % "2.1.5" exclude("io.netty", "netty")
+  val guava = "com.google.guava" % "guava" % "18.0"
+
 }

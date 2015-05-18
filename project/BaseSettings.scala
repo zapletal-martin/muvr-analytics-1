@@ -35,6 +35,10 @@ object BaseSettings extends sbtassembly.AssemblyKeys {
       fork in test := true,
       sbtPlugin := false,
       resolvers := ResolverSettings.resolvers,
+      assemblyExcludedJars in assembly := { 
+        val cp = (fullClasspath in assembly).value
+        cp filter {_.data.getName == "scala-library.jar"}
+      },
       assemblyMergeStrategy in assembly := {
         case "application.conf"                                                  => MergeStrategy.concat
         case "package-info.class"                                                => MergeStrategy.concat

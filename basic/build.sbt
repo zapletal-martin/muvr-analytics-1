@@ -6,8 +6,11 @@ Build.Settings.project
 name := "basic"
 
 libraryDependencies ++= Seq(
-  akka.analytics_cassandra,
-  spark.core,
-  hadoop.client,
-  spray.client
+  akka.analytics_cassandra % "provided",
+  spark.core % "provided",
+  hadoop.client % "provided",
+
+  akka.analytics_cassandra % "runtime",
+  akka.kryo % "runtime",
+  guava % "runtime"
 )
