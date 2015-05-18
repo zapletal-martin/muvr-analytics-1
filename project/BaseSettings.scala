@@ -11,9 +11,7 @@ import sbtassembly.PathList
  */
 object BaseSettings extends sbtassembly.AssemblyKeys {
   import sbtassembly.MergeStrategy
-  import sbtdocker._
   import net.virtualvoid.sbt.graph.Plugin._
-  import sbtdocker.Plugin.DockerKeys._
 
   /**
    * Common project settings
@@ -38,7 +36,6 @@ object BaseSettings extends sbtassembly.AssemblyKeys {
       sbtPlugin := false,
       resolvers := ResolverSettings.resolvers,
       assemblyMergeStrategy in assembly := {
-        case "UnusedStubClass.class"                                             => MergeStrategy.first
         case "application.conf"                                                  => MergeStrategy.concat
         case "package-info.class"                                                => MergeStrategy.concat
         case PathList(ps @ _*) if ps.last endsWith "package-info.class"          => MergeStrategy.discard

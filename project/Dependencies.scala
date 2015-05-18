@@ -25,6 +25,14 @@ object Dependencies {
     val version = "1.3.1"
 
     val core = ("org.apache.spark" %% "spark-core" % version)
+      .exclude("org.apache.hadoop", "hadoop-client")
+      .exclude("org.spark-project.akka", "akka-remote_2.10")
+      .exclude("org.apache.hadoop", "hadoop-common")
+      .exclude("org.apache.hadoop", "hadoop-hdfs")
+      .exclude("org.apache.curator", "curator-framework")
+      .exclude("org.apache.curator", "curator-recipes")
+      .exclude("org.scala-lang", "scalap")
+      .exclude("com.google.code.findbugs", "jsr305")
       /*.exclude("org.slf4j", "slf4j-log4j12")
       .exclude("org.eclipse.jetty.orbit", "javax.transaction")
       .exclude("org.eclipse.jetty.orbit", "javax.mail")
@@ -38,9 +46,9 @@ object Dependencies {
       .exclude("org.slf4j", "slf4j-api")
       .exclude("org.apache.hadoop", "hadoop-yarn-api")
       .exclude("com.google.guava", "guava")*/
-    val mllib = ("org.apache.spark" %% "spark-mllib" % version)
+    //val mllib = ("org.apache.spark" %% "spark-mllib" % version)
       /*.exclude("org.slf4j", "slf4j-api")*/
-    val streaming = "org.apache.spark" %% "spark-streaming" % version
+    //val streaming = "org.apache.spark" %% "spark-streaming" % version
     /*val streamingKafka = ("org.apache.spark" %% "spark-streaming-kafka" % version)
       .exclude("commons-beanutils", "commons-beanutils")
       .exclude("commons-beanutils", "commons-beanutils-core")
@@ -51,8 +59,8 @@ object Dependencies {
   object akka {
     val version = "0.2"
 
-    val analytics_cassandra = "com.github.krasserm" %% "akka-analytics-cassandra" % version
-      /*.exclude("com.typesafe.akka", "akka-actor_2.10")
+    val analytics_cassandra = ("com.github.krasserm" %% "akka-analytics-cassandra" % version)
+      .exclude("com.typesafe.akka", "akka-actor_2.10")
       .exclude("com.esotericsoftware.minlog", "minlog")
       .exclude("commons-beanutils", "commons-beanutils-core")
       .exclude("commons-collections", "commons-collections")
@@ -61,14 +69,7 @@ object Dependencies {
       .exclude("org.apache.spark", "spark-core_2.10")
       .exclude("commons-logging", "commons-logging")
       .exclude("com.codahale.metrics", "metrics-core")
-      .exclude("com.google.guava", "guava")*/
-  }
-
-  object slf4j {
-    val version = "1.6.1"
-
-    val slf4j_simple     = "org.slf4j"              % "slf4j-simple" % version
-    val slf4j_api        = "org.slf4j"              % "slf4j-api"    % version
+      .exclude("com.google.guava", "guava")
   }
 
   // Testing

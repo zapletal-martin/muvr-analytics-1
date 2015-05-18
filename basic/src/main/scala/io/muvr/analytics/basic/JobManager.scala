@@ -1,15 +1,13 @@
 package io.muvr.analytics.basic
 
-import akka.actor.{ActorLogging, Props, Actor}
-import com.eigengo.lift.spark.JobManagerProtocol.{BatchJobSubmitFunction, BatchJobSubmit, StreamJobSubmit, JobManagerProtocol}
-import com.eigengo.lift.spark.jobs.Job
-import com.eigengo.lift.spark.jobs.suggestions.SuggestionsJob
+import akka.actor.{Actor, ActorLogging, Props}
+import akka.pattern.PipeToSupport
 import com.typesafe.config.Config
+import io.muvr.analytics.basic.JobManagerProtocol.{JobManagerProtocol, StreamJobSubmit, BatchJobSubmitFunction, BatchJobSubmit}
+import io.muvr.analytics.basic.jobs.Job
 import org.apache.spark.SparkContext
-import akka.pattern.{PipeToSupport}
 
 import scala.concurrent.ExecutionContext.Implicits.global
-
 import scala.concurrent.Future
 
 /**
@@ -81,7 +79,7 @@ class JobManager(
         submit(name, func)
 
       case BatchJobSubmit('Suggestions) =>
-          submit(Job[SuggestionsJob], ()).pipeTo(self)
+          //submit(Job[SuggestionsJob], ()).pipeTo(self)
 
       case x => log.warning(s"Not a job $x")
     }

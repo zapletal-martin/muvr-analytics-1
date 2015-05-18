@@ -3,10 +3,10 @@ package io.muvr.analytics.basic
 import java.util.concurrent.TimeUnit
 
 import akka.actor.ActorSystem
-import com.eigengo.lift.spark.JobManagerProtocol.BatchJobSubmit
 import com.typesafe.config.ConfigFactory
-import org.apache.log4j.{Logger, Level}
+import io.muvr.analytics.basic.JobManagerProtocol.BatchJobSubmit
 import org.apache.spark.Logging
+
 import scala.concurrent.duration._
 import scala.language.postfixOps
 

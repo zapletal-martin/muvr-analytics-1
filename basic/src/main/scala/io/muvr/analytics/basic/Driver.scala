@@ -1,7 +1,7 @@
 package io.muvr.analytics.basic
 
-import com.eigengo.lift.spark.jobs.Batch
 import com.typesafe.config.Config
+import io.muvr.analytics.basic.jobs.Batch
 import org.apache.spark.{SparkConf, SparkContext}
 import org.slf4j.LoggerFactory
 
@@ -77,9 +77,9 @@ trait Driver {
       job: SparkContext => Future[Either[String, R]],
       additionalConfig: (Config, SparkConf) => SparkConf = (x, y) => y): Future[Either[String, R]] = {
 
-    logger.info(s"Executing job ${name} on master $master")
+    logger.info(s"Executing job $name on master $master")
     val result = job(sc)
-    logger.info(s"Job ${name} finished with result $result")
+    logger.info(s"Job $name finished with result $result")
 
     result
   }
