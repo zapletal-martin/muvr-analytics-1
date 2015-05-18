@@ -19,7 +19,7 @@ object PublishSettings {
         Some("releases"  at nexus + "service/local/staging/deploy/maven2")
     },
     pomExtra := (
-      <url>https://github.com/eigengo</url>
+      <url>https://github.com/muvr</url>
       <licenses>
         <license>
           <name>BSD-style</name>
@@ -28,8 +28,8 @@ object PublishSettings {
         </license>
       </licenses>
       <scm>
-        <url>git@github.com:eigengo/lift.git</url>
-        <connection>scm:git:git@github.com:eigengo/lift.git</connection>
+        <url>git@github.com:muvr/muvr-analytics.git</url>
+        <connection>scm:git:git@github.com:muvr/muvr-analytics.git</connection>
       </scm>
       <developers>
         <developer>
