@@ -3,7 +3,7 @@ import sbt._
 object Dependencies {
 
   object spray {
-    val version = "1.3.2"
+    val version = "1.3.3"
 
     val client  = "io.spray" %% "spray-client"             % version
   }
@@ -22,7 +22,7 @@ object Dependencies {
   }
 
   object spark {
-    val version = "1.3.0"
+    val version = "1.3.1"
 
     val core = ("org.apache.spark" %% "spark-core" % version)
       /*.exclude("org.slf4j", "slf4j-log4j12")
@@ -41,17 +41,17 @@ object Dependencies {
     val mllib = ("org.apache.spark" %% "spark-mllib" % version)
       /*.exclude("org.slf4j", "slf4j-api")*/
     val streaming = "org.apache.spark" %% "spark-streaming" % version
-    val streamingKafka = ("org.apache.spark" %% "spark-streaming-kafka" % version)
-      /*.exclude("commons-beanutils", "commons-beanutils")
+    /*val streamingKafka = ("org.apache.spark" %% "spark-streaming-kafka" % version)
+      .exclude("commons-beanutils", "commons-beanutils")
       .exclude("commons-beanutils", "commons-beanutils-core")
       .exclude("commons-collections", "commons-collections")
       .exclude("com.esotericsoftware.minlog", "minlog")*/
   }
 
-  object akkaAnalytics {
+  object akka {
     val version = "0.2"
 
-    val cassandra = ("com.github.krasserm" % "akka-analytics-cassandra_2.10" % version)
+    val analytics_cassandra = "com.github.krasserm" %% "akka-analytics-cassandra" % version
       /*.exclude("com.typesafe.akka", "akka-actor_2.10")
       .exclude("com.esotericsoftware.minlog", "minlog")
       .exclude("commons-beanutils", "commons-beanutils-core")
@@ -71,9 +71,7 @@ object Dependencies {
     val slf4j_api        = "org.slf4j"              % "slf4j-api"    % version
   }
 
-  val scodec_bits      = "org.typelevel"          %% "scodec-bits"  % "1.0.4"
-
   // Testing
-  val scalatest        = "org.scalatest"          %% "scalatest"    % "2.2.1"
-  val scalacheck       = "org.scalacheck"         %% "scalacheck"   % "1.12.1"
+  val scalatest        = "org.scalatest"          %% "scalatest"    % "2.2.4"
+  val scalacheck       = "org.scalacheck"         %% "scalacheck"   % "1.12.2"
 }

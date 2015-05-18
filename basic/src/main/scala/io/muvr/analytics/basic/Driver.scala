@@ -1,4 +1,4 @@
-package com.eigengo.lift.spark
+package io.muvr.analytics.basic
 
 import com.eigengo.lift.spark.jobs.Batch
 import com.typesafe.config.Config

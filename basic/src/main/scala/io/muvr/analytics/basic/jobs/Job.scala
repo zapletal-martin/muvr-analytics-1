@@ -1,4 +1,4 @@
-package com.eigengo.lift.spark.jobs
+package io.muvr.analytics.basic.jobs
 
 import scala.reflect.ClassTag
 

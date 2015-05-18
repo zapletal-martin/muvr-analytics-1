@@ -1,4 +1,4 @@
-package com.eigengo.lift.spark
+package io.muvr.analytics.basic
 
 import akka.actor.{ActorLogging, Props, Actor}
 import com.eigengo.lift.spark.JobManagerProtocol.{BatchJobSubmitFunction, BatchJobSubmit, StreamJobSubmit, JobManagerProtocol}

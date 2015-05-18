@@ -1,4 +1,4 @@
-package com.eigengo.lift.spark.api
+package io.muvr.analytics.basic.api
 
 import akka.actor.ActorSystem
 import com.typesafe.config.Config

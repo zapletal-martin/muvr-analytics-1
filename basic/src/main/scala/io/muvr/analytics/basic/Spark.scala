@@ -1,4 +1,4 @@
-package com.eigengo.lift.spark
+package io.muvr.analytics.basic
 
 import java.util.concurrent.TimeUnit
 
