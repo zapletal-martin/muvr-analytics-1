@@ -13,12 +13,12 @@ object Dependencies {
     val version = "2.4.0"
 
     val client = ("org.apache.hadoop" % "hadoop-client" % version)
-      /*.exclude("commons-beanutils", "commons-beanutils")
+      .exclude("commons-beanutils", "commons-beanutils")
       .exclude("commons-beanutils", "commons-beanutils-core")
       .exclude("commons-logging", "commons-logging")
       .exclude("org.slf4j", "slf4j-simple")
       .exclude("org.slf4j", "slf4j-log4j12")
-      .exclude("com.google.guava", "guava")*/
+      .exclude("com.google.guava", "guava")
   }
 
   object spark {

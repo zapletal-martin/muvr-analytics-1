@@ -8,5 +8,6 @@ name := "basic"
 libraryDependencies ++= Seq(
   akka.analytics_cassandra,
   spark.core,
+  hadoop.client,
   spray.client
 )
