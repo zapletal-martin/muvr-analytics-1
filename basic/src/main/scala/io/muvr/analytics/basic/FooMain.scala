@@ -12,8 +12,6 @@ object FooMain {
       .set("spark.cassandra.connection.timeout_ms", "1000")
       .set("spark.cassandra.connection.reconnection_delay_ms.max", "5s")
       .set("spark.cassandra.journal.keyspace", "akka")
-      .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
-      .set("spark.kryo.classesToRegister", "")
       .set("spark.cassandra.journal.table", "messages")
   }
 
