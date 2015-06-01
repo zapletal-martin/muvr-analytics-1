@@ -59,7 +59,8 @@ object Dependencies {
   object akka {
     val version = "0.2"
 
-    val kryo                  = "com.github.romix.akka"  %% "akka-kryo-serialization"       % "0.3.2"
+    val chill                  = ("com.twitter"  %% "chill-akka"       % "0.5.0")
+      .exclude("com.esotericsoftware.minlog", "minlog")
 
     val analytics_cassandra = ("com.github.krasserm" %% "akka-analytics-cassandra" % version)
       .exclude("com.typesafe.akka", "akka-actor_2.10")
