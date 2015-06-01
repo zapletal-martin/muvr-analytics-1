@@ -4,7 +4,6 @@ import akka.actor.ActorSystem
 import akka.analytics.cassandra.JournalKey
 import akka.persistence.PersistentRepr
 import akka.serialization.SerializationExtension
-import com.twitter.chill.{KryoPool, ScalaKryoInstantiator, KryoInstantiator}
 import io.muvr.exercise.Rest
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkConf, SparkContext}
