@@ -65,7 +65,7 @@ object IntensityPipeline {
 
   type ERESFilteredInputData = RDD[EntireResistanceExerciseSession]
   type PredictionPipeline = UserId ⇒ PredictorResult
-  type PredictorResult = Seq[(Double, Date)]
+  type PredictorResult = Seq[(String, Double, Date)]
 
   def filterEvents(userId: UserId, events: RawInputData): ERESFilteredInputData = {
     events.flatMap {
@@ -75,37 +75,47 @@ object IntensityPipeline {
   }
 
   def pipeline(events: RawInputData, useHistory: Int, predictDays: Int): PredictionPipeline = { userId ⇒
-    val inputData = filterEvents(userId, events)
-    val inputDataSize = inputData.count()
-    val normalizedUseHistory = Math.min(useHistory, inputDataSize.toInt - 1)
+    val allInputData = filterEvents(userId, events)
+    val distinctMuscleGroupIds = allInputData.flatMap(_.session.muscleGroupIds).distinct().collect()
 
-    val now = new Date().midnight
+    distinctMuscleGroupIds.flatMap { mgid ⇒
+      val inputData = allInputData.filter(_.session.muscleGroupIds.contains(mgid))
+      val inputDataSize = inputData.count()
 
-    val intensityTrainingData = inputData
-      .map(_.session.intendedIntensity)
-      .sliding(normalizedUseHistory + 1)
-      .map(exercises => LabeledPoint(exercises.head, Vectors.dense(exercises.tail)))
+      if (inputDataSize == 0) Nil
+      else {
+        val normalizedUseHistory = Math.min(useHistory, inputDataSize.toInt - 1)
+        var intensityPredictions: List[(String, Double, Date)] = Nil
 
-    val intensityModel = LinearRegressionWithSGD.train(intensityTrainingData, 100, 0.01, 1.0)
-    var intensityPredictions: List[(Double, Date)] = Nil
-    val indexedInputData = inputData.zipWithIndex().cache()
-    for (i ← 0 to predictDays - 1) {
-      val historyTestData = indexedInputData.filter(x => x._2 > inputDataSize - normalizedUseHistory - 1 + i)
-      val padWithPredictions = normalizedUseHistory - historyTestData.count().toInt
-      val paddedTestData: Array[Double] = if (padWithPredictions > 0) {
-        historyTestData.map(_._1.session.intendedIntensity).collect() ++
-          intensityPredictions.take(Math.min(intensityPredictions.size, padWithPredictions)).map(_._1) ++
-          Array.fill(Math.min(0, padWithPredictions - intensityPredictions.size))(0.5)
-      } else historyTestData.map(_._1.session.intendedIntensity).collect()
+        val now = new Date().midnight
 
-      require(paddedTestData.length == normalizedUseHistory)
+        val intensityTrainingData = inputData
+          .map(_.session.intendedIntensity)
+          .sliding(normalizedUseHistory + 1)
+          .map(exercises => LabeledPoint(exercises.head, Vectors.dense(exercises.tail)))
 
-      val predictedIntensity = intensityModel.predict(Vectors.dense(paddedTestData))
+        val intensityModel = LinearRegressionWithSGD.train(intensityTrainingData, 100, 0.01, 1.0)
+        val indexedInputData = inputData.zipWithIndex().cache()
+        for (i ← 0 to predictDays - 1) {
+          val historyTestData = indexedInputData.filter(x => x._2 > inputDataSize - normalizedUseHistory - 1 + i)
+          val padWithPredictions = normalizedUseHistory - historyTestData.count().toInt
+          val paddedTestData: Array[Double] = if (padWithPredictions > 0) {
+            historyTestData.map(_._1.session.intendedIntensity).collect() ++
+              intensityPredictions.take(Math.min(intensityPredictions.size, padWithPredictions)).map(_._2) ++
+              Array.fill(Math.min(0, padWithPredictions - intensityPredictions.size))(0.5)
+          } else historyTestData.map(_._1.session.intendedIntensity).collect()
 
-      intensityPredictions = intensityPredictions :+ (predictedIntensity → now.addDays(i + 1))
+          require(paddedTestData.length == normalizedUseHistory)
+
+          val predictedIntensity = intensityModel.predict(Vectors.dense(paddedTestData))
+
+          intensityPredictions = intensityPredictions :+ (mgid, predictedIntensity, now.addDays(i + 1))
+        }
+
+        intensityPredictions
+      }
     }
 
-    intensityPredictions
   }
 
 }
