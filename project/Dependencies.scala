@@ -24,6 +24,9 @@ object Dependencies {
   object spark {
     val version = "1.3.1"
 
+    val mllib = ("org.apache.spark" %% "spark-mllib" % version)
+      .exclude("org.slf4j", "slf4j-api")
+
     val core = ("org.apache.spark" %% "spark-core" % version)
       .exclude("org.apache.hadoop", "hadoop-client")
       .exclude("org.spark-project.akka", "akka-remote_2.10")
