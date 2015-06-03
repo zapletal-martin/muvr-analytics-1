@@ -3,8 +3,11 @@ import Keys._
 
 name := "muvr-analytics"
 
+// Common protocol
+lazy val commonProtocol = project.in(file("common-protocol"))
+
 // Exercise protocol
-lazy val exerciseProtocol = project.in(file("exercise-protocol"))
+lazy val exerciseProtocol = project.in(file("exercise-protocol")).dependsOn(commonProtocol)
 
 // Spark
 lazy val basic = project.in(file("basic")).dependsOn(exerciseProtocol)
