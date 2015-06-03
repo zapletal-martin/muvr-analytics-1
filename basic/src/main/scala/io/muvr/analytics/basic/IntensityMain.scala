@@ -4,16 +4,15 @@ import java.util.{Calendar, Date}
 
 import akka.analytics.cassandra
 import akka.analytics.cassandra.JournalKey
-import breeze.linalg.normalize
 import io.muvr.UserId
 import io.muvr.exercise.{EntireResistanceExerciseSession, UserExerciseProcessorPersistenceId}
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 
 object IntensityMain {
-  import SparkConfiguration._
-  import IntensityPipeline._
   import CommonPipeline._
+  import IntensityPipeline._
+  import SparkConfiguration._
 
   def main(args: Array[String]) {
     import cassandra._
@@ -60,10 +59,9 @@ object CommonPipeline {
 
 object IntensityPipeline {
   import CommonPipeline._
-  import org.apache.spark.mllib.rdd.RDDFunctions._
   import org.apache.spark.mllib.linalg.Vectors
-  import org.apache.spark.mllib.regression.LabeledPoint
-  import org.apache.spark.mllib.regression.LinearRegressionWithSGD
+  import org.apache.spark.mllib.rdd.RDDFunctions._
+  import org.apache.spark.mllib.regression.{LabeledPoint, LinearRegressionWithSGD}
 
   type ERESFilteredInputData = RDD[EntireResistanceExerciseSession]
   type PredictionPipeline = UserId ⇒ PredictorResult
