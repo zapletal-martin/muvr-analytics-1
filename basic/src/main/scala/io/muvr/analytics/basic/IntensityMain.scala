@@ -35,7 +35,18 @@ object CommonPipeline {
 
     def addDays(count: Int): Date = {
       val c = Calendar.getInstance()
+      c.setTime(date)
       c.add(Calendar.DAY_OF_YEAR, count)
+      c.getTime
+    }
+
+    val midnight: Date = {
+      val c = Calendar.getInstance()
+      c.setTime(date)
+      c.set(Calendar.MILLISECOND, 0)
+      c.set(Calendar.SECOND, 0)
+      c.set(Calendar.MINUTE, 0)
+      c.set(Calendar.HOUR_OF_DAY, 0)
       c.getTime
     }
   }
@@ -70,19 +81,14 @@ object IntensityPipeline {
     val inputDataSize = inputData.count()
     val normalizedUseHistory = Math.min(useHistory, inputDataSize.toInt - 1)
 
-    println("****")
+    val now = new Date().midnight
 
-    val now = new Date()
-
-    // RDD[LabeledPoint]
     val intensityTrainingData = inputData
       .map(_.session.intendedIntensity)
       .sliding(normalizedUseHistory + 1)
       .map(exercises => LabeledPoint(exercises.head, Vectors.dense(exercises.tail)))
 
-    intensityTrainingData.foreach(println)
-
-    val intensityModel = LinearRegressionWithSGD.train(intensityTrainingData, 100)
+    val intensityModel = LinearRegressionWithSGD.train(intensityTrainingData, 100, 0.01, 1.0)
     var intensityPredictions: List[(Double, Date)] = Nil
     val indexedInputData = inputData.zipWithIndex().cache()
     for (i ← 0 to predictDays - 1) {
@@ -95,14 +101,11 @@ object IntensityPipeline {
       } else historyTestData.map(_._1.session.intendedIntensity).collect()
 
       require(paddedTestData.length == normalizedUseHistory)
-      println(java.util.Arrays.toString(paddedTestData))
 
       val predictedIntensity = intensityModel.predict(Vectors.dense(paddedTestData))
 
-      intensityPredictions = (predictedIntensity → now.addDays(i + 1)) :: intensityPredictions
+      intensityPredictions = intensityPredictions :+ (predictedIntensity → now.addDays(i + 1))
     }
-
-    println(intensityPredictions)
 
     intensityPredictions
   }
