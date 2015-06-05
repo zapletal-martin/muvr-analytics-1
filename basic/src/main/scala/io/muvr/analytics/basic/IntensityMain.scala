@@ -122,3 +122,45 @@ object IntensityPipeline {
   }
 
 }
+
+
+
+
+//    val muscleGroupsInputData = allInputData
+//      .map(_.session.muscleGroupIds)
+//      .distinct()
+//
+//    val muscleGroupsInputDataSize = muscleGroupsInputData.count()
+//
+//    val normalizedUseHistory = Math.min(useHistory, muscleGroupsInputDataSize.toInt - 1)
+//    val muscleGroupsTrainingData = muscleGroupsInputData
+//      .zipWithIndex()
+//      .map(_._2.toDouble)
+//      .sliding(normalizedUseHistory + 1)
+//      .map(mgs => LabeledPoint(mgs.head, Vectors.dense(mgs.tail)))
+//
+//    val muscleGroupsModel = NaiveBayes.train(muscleGroupsTrainingData)
+//    val indexedInputData = muscleGroupsInputData.zipWithIndex().map(_._2.toDouble)
+//    var predictions: List[(Double, Date)] = Nil
+//    for (i <- 0 to predictDays - 1) {
+//      val historyTestData = indexedInputData
+//        .filter(x => x._2 > muscleGroupsInputDataSize - normalizedUseHistory - 1 + i)
+//
+//      val padWithPredictions = normalizedUseHistory - historyTestData.count().toInt
+//
+//      val paddedTestData = if (padWithPredictions > 0) {
+//        historyTestData.map(_._1).collect() ++
+//          predictions.take(Math.min(predictions.size, padWithPredictions)).map(x => (x._1, x._2)) ++
+//          Array.fill(Math.min(0, padWithPredictions - predictions.size))((0.5, 0.5))
+//      } else {
+//        historyTestData.map(_._1).collect()
+//      }
+//
+//      require(paddedTestData.size == normalizedUseHistory)
+//
+//      val predictedMuscleKeyGroup = muscleGroupsModel.predict(Vectors.dense(paddedTestData.map(_._1)))
+//      val predictedIntensity = intensityModel.predict(Vectors.dense(paddedTestData.map(_._2)))
+//
+//      predictions = predictions.::((predictedMuscleKeyGroup, predictedIntensity, addDays(now, i + 1)))
+//    }
+//
