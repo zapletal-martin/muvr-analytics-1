@@ -7,6 +7,7 @@ object Dependencies {
 
     val json    = "io.spray" %%  "spray-json"       % "1.3.1"
     val client  = "io.spray" %% "spray-client"      % version
+    val routing = "io.spray" %% "spray-routing"     % version
   }
 
   //TODO: Spark, Hadoop, Akkaanalytics are exclusive for currently used spark build and should be separated from the rest
@@ -63,7 +64,9 @@ object Dependencies {
   object akka {
     val persistence           = "com.typesafe.akka" %% "akka-persistence-experimental" % "2.3.11" intransitive()
 
-    val chill                  = ("com.twitter"  %% "chill-akka"       % "0.5.0")
+    val actor                 = "com.typesafe.akka"      %% "akka-actor"   % "2.3.11"
+
+    val chill                 = ("com.twitter"  %% "chill-akka"       % "0.5.0")
       .exclude("com.esotericsoftware.minlog", "minlog")
 
     val analytics_cassandra = ("com.github.krasserm" %% "akka-analytics-cassandra" % "0.2")
