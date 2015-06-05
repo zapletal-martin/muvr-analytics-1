@@ -5,7 +5,7 @@ object Dependencies {
   object spray {
     val version = "1.3.3"
 
-    val json    = "io.spray" %%  "spray-json"       % "1.3.1"
+    val json    = "io.spray" %% "spray-json"        % "1.3.1"
     val client  = "io.spray" %% "spray-client"      % version
     val routing = "io.spray" %% "spray-routing"     % version
   }

@@ -12,6 +12,7 @@ libraryDependencies ++= Seq(
   hadoop.client % "provided",
 
   akka.analytics_cassandra % "runtime",
+  spray.client,
   akka.persistence % "runtime",
   akka.chill % "runtime",
   guava % "runtime"
