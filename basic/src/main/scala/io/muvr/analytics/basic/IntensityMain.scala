@@ -20,7 +20,10 @@ object IntensityMain {
     val sc = new SparkContext(sparkConf)
     val et = sc.eventTable().cache()
     val preparedIntensityPipeline = pipeline(et, 50, 10)
-    getUsers(et).collect().map(preparedIntensityPipeline).foreach(println)
+    getUsers(et)
+      .collect()
+      .map(userId ⇒ userId → preparedIntensityPipeline(userId))
+      .foreach(println)
     println("done")
   }
 
