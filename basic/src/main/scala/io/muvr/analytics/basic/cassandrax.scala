@@ -9,7 +9,7 @@ import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 
 /**
- * This
+ * TODO: This is a hack to get custom serialization to work. Use https://github.com/krasserm/akka-analytics/ in production
  */
 object cassandrax {
   import com.datastax.spark.connector._

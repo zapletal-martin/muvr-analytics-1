@@ -4,6 +4,9 @@ import akka.analytics.cassandra.JournalKey
 import io.muvr.exercise.{EntireResistanceExerciseSession, UserExerciseProcessorPersistenceId}
 import org.apache.spark.SparkContext
 
+/**
+ * Reads the submitted examples
+ */
 object TrainingMain {
   import SparkConfiguration._
 

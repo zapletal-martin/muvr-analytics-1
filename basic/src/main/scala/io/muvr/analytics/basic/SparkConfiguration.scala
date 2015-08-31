@@ -4,6 +4,7 @@ import org.apache.spark.SparkConf
 
 object SparkConfiguration {
 
+  // TODO: Use environment variables
   lazy val sparkConf: SparkConf = {
     new SparkConf()
       .setAppName("Muvr Analytics")
