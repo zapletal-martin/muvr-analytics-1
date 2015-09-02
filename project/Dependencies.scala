@@ -5,7 +5,7 @@ object Dependencies {
   object spray {
     val version = "1.3.3"
 
-    val json    = "io.spray" %% "spray-json"        % "1.3.1"
+    val json    = "io.spray" %% "spray-json"        % "1.3.2"
     val client  = "io.spray" %% "spray-client"      % version
     val routing = "io.spray" %% "spray-routing"     % version
   }
@@ -24,7 +24,7 @@ object Dependencies {
   }
 
   object spark {
-    val version = "1.3.1"
+    val version = "1.4.1"
 
     val mllib = ("org.apache.spark" %% "spark-mllib" % version)
       .exclude("org.slf4j", "slf4j-api")
@@ -64,12 +64,12 @@ object Dependencies {
   object akka {
     val persistence           = "com.typesafe.akka" %% "akka-persistence-experimental" % "2.3.11" intransitive()
 
-    val actor                 = "com.typesafe.akka"      %% "akka-actor"   % "2.3.11"
+    val actor                 = "com.typesafe.akka"      %% "akka-actor"   % "2.3.12"
 
     val chill                 = ("com.twitter"  %% "chill-akka"       % "0.5.0")
       .exclude("com.esotericsoftware.minlog", "minlog")
 
-    val analytics_cassandra = ("com.github.krasserm" %% "akka-analytics-cassandra" % "0.2")
+    val analytics_cassandra = ("com.github.krasserm" %% "akka-analytics-cassandra" % "0.3")
       .exclude("com.typesafe.akka", "akka-actor_2.10")
       .exclude("com.esotericsoftware.minlog", "minlog")
       .exclude("commons-beanutils", "commons-beanutils-core")
