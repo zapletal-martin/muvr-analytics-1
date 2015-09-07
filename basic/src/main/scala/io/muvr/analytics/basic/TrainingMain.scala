@@ -15,7 +15,7 @@ object TrainingMain {
 
     val sc = new SparkContext(sparkConf)
     val allExamples = sc.eventTable()
-      .flatMap { case (JournalKey(UserExerciseProcessorPersistenceId(userId), _, _), EntireResistanceExerciseSession(_, _, _, examples, _)) ⇒ examples }
+      .flatMap { case (JournalKey(UserExerciseProcessorPersistenceId(userId), _, _), EntireResistanceExerciseSession(_, _, examples)) ⇒ examples }
       .flatMap { example ⇒ example.correct.map(correct ⇒ correct → example.fusedSensorData) }
       .groupBy { _._1 }
 
