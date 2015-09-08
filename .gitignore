@@ -139,6 +139,7 @@ xcuserdata
 .lock-waf_darwin_build
 
 .idea
+*.iml
 
 Pods
 *.xcworkspace
