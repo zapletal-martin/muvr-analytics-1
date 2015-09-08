@@ -3,9 +3,9 @@ import sbt._
 object Dependencies {
 
   object spray {
-    val version = "1.3.3"
+    val version = "1.3.2"
 
-    val json    = "io.spray" %% "spray-json"        % "1.3.2"
+    val json    = "io.spray" %% "spray-json"        % version
     val client  = "io.spray" %% "spray-client"      % version
     val routing = "io.spray" %% "spray-routing"     % version
   }
@@ -62,7 +62,7 @@ object Dependencies {
   }
 
   object akka {
-    val persistence           = "com.typesafe.akka" %% "akka-persistence-experimental" % "2.3.11" intransitive()
+    val persistence           = "com.typesafe.akka" %% "akka-persistence-experimental" % "2.3.12" intransitive()
 
     val actor                 = "com.typesafe.akka"      %% "akka-actor"   % "2.3.12"
 
@@ -85,4 +85,5 @@ object Dependencies {
   val cassandra_driver = "com.datastax.cassandra" % "cassandra-driver-core" % "2.1.5" exclude("io.netty", "netty")
   val guava = "com.google.guava" % "guava" % "18.0"
 
+  val csv = "com.github.tototoshi" %% "scala-csv" % "1.2.2"
 }
