@@ -125,6 +125,12 @@ xcuserdata
 
 *.moved-aside
 
+####
+# R: files R Studio creates but should not checked into the repository
+#
+.RData
+.Rhistory
+.Rproj.user
 
 ####
 # UNKNOWN: recommended by others, but I can't discover what these files are
@@ -142,5 +148,5 @@ target
 journal
 snapshots
 
-
+logs/
 checkpoint
