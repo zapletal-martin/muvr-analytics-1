@@ -1,51 +1,23 @@
+source("data-reader.R")
+source("data-cleansing.R")
+
 ########################################
 # Knobs to turn
 ########################################
 
 # Parent directory of the training data
-rootdir <- "../../../../../../muvr-training-data/labelled"
+# rootdir <- "../../../muvr-an/muvr-analytics/muvr-training-data/labelled"
+# rootdir <- "../../../muvr-an/muvr-analytics/spark-csv-dump"
+rootdir <- "../../../muvr-an/muvr-analytics/spark-csv-dump-slacking"
+outputdir <- "~/data/ca-su-slacking"
 
 lengthPerChannel <- 400
 
+examples <- readGymTrainingData(rootdir)
 
-########################################
-# Load data from CSV files
-########################################
-
-# Retrieve all the CSV file paths from the root directory to use them as examples
-relativeFiles <- list.files(rootdir, recursive = TRUE, pattern = "*.csv")
-csvFiles <- sapply(relativeFiles, function(p){file.path(rootdir, p)})
-
-examples <- lapply(csvFiles, function(path)
-{
-  print(path)
-  
-  # Load and stack the data as a row vector
-  movement_L <- read.csv(file = path, header = FALSE)
-  movement <- data.frame(movement_L)
-  
-  return(list(
-    label=levels(movement[1, 2]), 
-    x=movement[,ncol(movement)-2], 
-    y=movement[,ncol(movement)-1], 
-    z=movement[,ncol(movement)]))
-})
-
-########################################
 # Data cleansing
-########################################
 
-minLength <- lengthPerChannel
-
-exampleLengths <- function(examples) {
-  return(sapply(examples, function(e){length(e$x)}))
-}
-
-# Remove examples that are not annotated properly (indicated by an "x")
-examples <- examples[which(sapply(examples, function(e){ e$label}) != "x")]
-
-# Remove examples with a length that is to short to extract the necessary amount of features
-examples <- examples[which(exampleLengths(examples) >= minLength)]
+examples <- enforceProperLabel(enforceMinLength(examples, lengthPerChannel))
 
 ########################################
 # Data visualisation
@@ -94,11 +66,11 @@ plotExercise <- function(examples, exerciseName, maxExamples=5){
     maxY <- max(sapply(smoothedData, max))
     minY <- min(sapply(smoothedData, min))
     plot(c(), 
-         xlim = c(0, maxX), 
+         xlim = c(0, maxX),
          ylim=c(minY, maxY),
          xlab = "Time",
          ylab = paste(dimension, "-acceleration", sep = ""))
-
+    
     for(i in (1:length(filtered))){
       lines(smoothedData[[i]], col = colors[[i]])  
     }
@@ -122,8 +94,8 @@ train_test_ratio = 0.8
 
 augmentExample <- function(e){
   label <- e$label
-  minIdx = floor(length(e$x) * 0.2)
-  maxIdx = ceiling(length(e$x) * 0.8)
+  minIdx = floor(length(e$x) * 0.1)
+  maxIdx = ceiling(length(e$x) * 0.9)
   if (maxIdx - minIdx < lengthPerChannel) {
     # No window augmentation since the example is to short
     start <- (length(e$x) - lengthPerChannel) / 2
@@ -188,20 +160,20 @@ train['numeric_labels'] <- sapply(train$label, as.numeric)
 train$labels <- NULL
 train <- train[sample(nrow(train)),]
 
-write.csv(train, file = paste("~/data/labeled_exercise_data_f", lengthPerChannel,"_TRAIN.csv", sep = ""), row.names=FALSE)
+write.csv(train, file = paste(outputdir, "/labeled_exercise_data_f", lengthPerChannel,"_TRAIN.csv", sep = ""), row.names=FALSE)
 
 # Process and write test data
 augmentedTestExamples <- augmentExamples(testExamples)
 
 test <- data.frame(labels = factor(augmentedTestExamples$label, levels=mostCommonLabels, ordered = TRUE), 
-                    numeric_labels = rep(NA, nrow(augmentedTestExamples)), 
+                   numeric_labels = rep(NA, nrow(augmentedTestExamples)), 
                    scaleFeatures(augmentedTestExamples[2:ncol(augmentedTestExamples)]))
 
 test['numeric_labels'] <- sapply(test$label, as.numeric)
 test <- test[sample(nrow(test)),]
 
-write.csv(levels(test$labels), file = paste("~/data/labeled_exercise_data_f", lengthPerChannel,"_LABELS.csv", sep = ""))
+write.csv(levels(test$labels), file = paste(outputdir, "/labeled_exercise_data_f", lengthPerChannel,"_LABELS.csv", sep = ""))
 
 test$labels <- NULL
-write.csv(test, file = paste("~/data/labeled_exercise_data_f", lengthPerChannel,"_TEST.csv", sep = ""), row.names=FALSE)
+write.csv(test, file = paste(outputdir, "/labeled_exercise_data_f", lengthPerChannel,"_TEST.csv", sep = ""), row.names=FALSE)
 
