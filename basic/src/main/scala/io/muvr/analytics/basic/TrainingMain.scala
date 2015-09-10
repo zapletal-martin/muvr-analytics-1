@@ -79,26 +79,34 @@ object TrainingMain {
     csvWriter
   }
 
-  def extractExerciseTrainingData() = {
-    val csvWriter = prepareCSVWriter("spark-csv-dump")
-    val sc = new SparkContext(sparkConf)
+  def extractExerciseTrainingData(sc: SparkContext) = {
+    val csvWriter = prepareCSVWriter("/Users/tombocklisch/data/spark-csv-exercises")
     val allExamples = sc.eventTable()
 
     groupExamplesByUser(allExamples)
       .foreach {
       case (userId, exercises) ⇒
-        if (userId.id.toString == TrainingDataUser)
-          exercises.foreach {
-            case (_, exercise, data) ⇒
-              csvWriter.writeExample(exercise.id, data)
-          }
-
+        exercises.foreach {
+          case (userId, exercise, data) ⇒
+            labelMapperExercise(exercise.id, userId.id.toString).map(csvWriter.writeExample(_, data))
+        }
     }
   }
 
-  def extractActivityTrainingData() = {
-    val csvWriter = prepareCSVWriter("spark-csv-dump-slacking")
-    val sc = new SparkContext(sparkConf)
+  def labelMapperSlacking(label: String, user: String) = (label, user) match {
+    case ("arms/biceps-curl", "533f7927-9bd7-4700-8144-4022fd1bb14b") ⇒ Some("/slacking")   // trainer (walking mostly)
+    case (exercise, "9d1a8b72-1651-4d42-acb9-7df4d4ac4cf1") ⇒ Some("/exercise")             // lifter user
+    case _ ⇒ None
+  }
+
+  def labelMapperExercise(label: String, user: String) = (label, user) match {
+    case (exercise, "9d1a8b72-1651-4d42-acb9-7df4d4ac4cf1") ⇒ Some(exercise)                // lifter user
+    case _ ⇒ None
+  }
+
+  def extractActivityTrainingData(sc: SparkContext) = {
+    val csvWriter = prepareCSVWriter("/Users/tombocklisch/data/spark-csv-activity")
+
     val allExamples = sc.eventTable()
 
     groupExamplesByUser(allExamples)
@@ -109,25 +117,20 @@ object TrainingMain {
           case (exerciseName, data) ⇒
             println(exerciseName + " - " + data.size)
         }
-        userId.id.toString match {
-          case TrainingDataUser ⇒
-            exercises.foreach {
-              case (userId, exercise, data) ⇒
-                csvWriter.writeExample("/Exercise", data)
-            }
-          case SlackerDataUser ⇒
-            exercises.foreach {
-              case (userId, exercise, data) ⇒
-                csvWriter.writeExample("/Slacking", data)
-            }
-          case _ ⇒
+        exercises.foreach {
+          case (userId, exercise, data) ⇒
+            labelMapperSlacking(exercise.id, userId.id.toString).map(csvWriter.writeExample(_, data))
         }
     }
   }
 
   def main(args: Array[String]) {
-    extractActivityTrainingData()
+    val sc = new SparkContext(sparkConf)
+    //extractActivityTrainingData(sc)
+    //extractExerciseTrainingData(sc)
+    val allExamples = sc.eventTable()
 
+    groupExamplesByUser(allExamples).foreach(x ⇒ Unit)
     System.exit(0)
   }
 }
