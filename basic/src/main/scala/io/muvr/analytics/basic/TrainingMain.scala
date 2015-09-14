@@ -5,6 +5,7 @@ import java.nio.file.{Files, Paths}
 import java.util.UUID
 
 import akka.analytics.cassandra.JournalKey
+import io.muvr.UserId
 import io.muvr.exercise._
 import org.apache.commons.io.FileUtils
 import org.apache.spark.SparkContext
@@ -20,7 +21,7 @@ trait TrainingExampleWriter {
   def extractGroupFrom(exerciseId: String) =
     exerciseId.split(Exercise_Id_Name_Separator).last
 
-  def writeExample(exerciseId: String, data: List[FusedSensorData]): Unit
+  def writeExample(exerciseId: String, data: Seq[SensorData]): Unit
 }
 
 /**
@@ -31,18 +32,18 @@ case class CSVTrainingExampleWriter(outDir: String) extends TrainingExampleWrite
 
   import com.github.tototoshi.csv._
 
-  def writeExample(exerciseId: String, data: List[FusedSensorData]): Unit = {
+  def writeExample(datasetId: String, data: Seq[SensorData]): Unit = {
     val id = UUID.randomUUID().toString
     val csvFile = new File(s"$outDir/$id.csv")
-    writeExample(exerciseId, data, csvFile)
+    writeExample(datasetId, data, csvFile)
   }
 
-  private def writeExample(exerciseId: String, data: List[FusedSensorData], target: File): Unit = {
-    val exerciseName = extractNameFrom(exerciseId)
-    val exerciseGroup = extractGroupFrom(exerciseId)
+  private def writeExample(datasetId: String, data: Seq[SensorData], target: File): Unit = {
+    val exerciseName = extractNameFrom(datasetId)
+    val exerciseGroup = extractGroupFrom(datasetId)
     val writer = CSVWriter.open(target)
 
-    val csvData = data.flatMap(fsd ⇒ fsd.data).map {
+    val csvData = data.map {
       case Threed(x, y, z) ⇒ List(exerciseGroup, exerciseName, x, y, z)
     }
 
@@ -51,13 +52,92 @@ case class CSVTrainingExampleWriter(outDir: String) extends TrainingExampleWrite
   }
 }
 
-object TrainingMain {
+trait LabelMapper {
+  def labelMapper(label: String): Option[String]
+}
 
-  import SparkConfiguration._
-  import cassandrax._
+trait IdentityLabelMapper extends LabelMapper {
+  override def labelMapper(label: String) = Option(label)
+}
 
-  val TrainingDataUser = "26dc5fbe-714f-407e-b04d-b76f1a825c40"
-  val SlackerDataUser = "86274edb-f212-4f1e-96f9-37e20b4a7e5e"
+trait ActivityLabelMapper extends LabelMapper {
+  override def labelMapper(label: String) = label match {
+    case "arms/biceps-curl" ⇒ Some("/slacking") // trainer (walking mostly)
+    case exercise ⇒ Some("/exercise") // lifter user
+    case _ ⇒ None
+  }
+}
+
+trait UserFilter {
+
+  def filterUsers(user: UserId): Boolean
+}
+
+trait AllUsers extends UserFilter {
+
+  override def filterUsers(user: UserId) = true
+}
+
+trait SingleUserFilter extends UserFilter {
+
+  def trainingsUser: String
+
+  override def filterUsers(user: UserId) = user == UserId(trainingsUser)
+}
+
+trait DataPreparationPipeline extends LabelMapper with UserFilter {
+
+  type RawData = RDD[(JournalKey, Any)]
+
+  type RefinedData
+
+  def prepareData(rawData: RawData)(implicit sc: SparkContext): RefinedData
+}
+
+object ActivityDataPreparationPipeline
+  extends DataPreparationPipeline
+  with SingleUserFilter
+  with ActivityLabelMapper
+  with RawRDDHelpers {
+
+  val trainingsUser = "9d1a8b72-1651-4d42-acb9-7df4d4ac4cf1"
+
+  type RefinedData = RDD[(String, Iterable[(String, Seq[SensorData])])]
+
+  def prepareData(rawData: RawData)(implicit sc: SparkContext): RefinedData = {
+    // val csvWriter = prepareCSVWriter("/Users/tombocklisch/data/spark-csv-activity")
+
+    groupExamplesByUser(rawData)
+      .map { case (userId, exercises) ⇒
+        println("------------ USER " + userId)
+        exercises.groupBy(_._2).foreach {
+          case (exerciseName, data) ⇒
+            println(exerciseName + " - " + data.size)
+        }
+
+        val examples = exercises.map {
+          case (_, exercise, listOfFusedData) ⇒
+            exercise.id → listOfFusedData.flatMap(data ⇒ data.data)
+        }
+        (userId, examples)
+      }
+      .filter { case (userId, exercise) ⇒ filterUsers(userId) }
+      .map { case (userId, exercise) ⇒ userId.id.toString -> exercise }
+  }
+}
+
+trait CSVHelpers {
+  def prepareCSVWriter(rootDir: String) = {
+    val csvWriter = CSVTrainingExampleWriter(rootDir)
+
+    FileUtils.deleteDirectory(new File(rootDir))
+    Files.createDirectories(Paths.get(rootDir))
+
+    csvWriter
+  }
+}
+
+trait RawRDDHelpers {
 
   def groupExamplesByUser(input: RDD[(JournalKey, Any)]) = {
     input.flatMap { case (JournalKey(UserExerciseProcessorPersistenceId(userId), _, _), EntireResistanceExerciseSession(id, _, examples)) ⇒
@@ -69,68 +149,32 @@ object TrainingMain {
       userId
     }
   }
+}
 
-  def prepareCSVWriter(rootDir: String) = {
-    val csvWriter = CSVTrainingExampleWriter(rootDir)
+object TrainingMain extends CSVHelpers{
 
-    FileUtils.deleteDirectory(new File(rootDir))
-    Files.createDirectories(Paths.get(rootDir))
-
-    csvWriter
-  }
-
-  def extractExerciseTrainingData(sc: SparkContext) = {
-    val csvWriter = prepareCSVWriter("/Users/tombocklisch/data/spark-csv-exercises")
-    val allExamples = sc.eventTable()
-
-    groupExamplesByUser(allExamples)
-      .foreach {
-      case (userId, exercises) ⇒
-        exercises.foreach {
-          case (userId, exercise, data) ⇒
-            labelMapperExercise(exercise.id, userId.id.toString).map(csvWriter.writeExample(_, data))
-        }
-    }
-  }
-
-  def labelMapperSlacking(label: String, user: String) = (label, user) match {
-    case ("arms/biceps-curl", "533f7927-9bd7-4700-8144-4022fd1bb14b") ⇒ Some("/slacking")   // trainer (walking mostly)
-    case (exercise, "9d1a8b72-1651-4d42-acb9-7df4d4ac4cf1") ⇒ Some("/exercise")             // lifter user
-    case _ ⇒ None
-  }
-
-  def labelMapperExercise(label: String, user: String) = (label, user) match {
-    case (exercise, "9d1a8b72-1651-4d42-acb9-7df4d4ac4cf1") ⇒ Some(exercise)                // lifter user
-    case _ ⇒ None
-  }
-
-  def extractActivityTrainingData(sc: SparkContext) = {
-    val csvWriter = prepareCSVWriter("/Users/tombocklisch/data/spark-csv-activity")
-
-    val allExamples = sc.eventTable()
-
-    groupExamplesByUser(allExamples)
-      .foreach {
-      case (userId, exercises) ⇒
-        println("------------ USER " + userId)
-        exercises.groupBy(_._2).foreach {
-          case (exerciseName, data) ⇒
-            println(exerciseName + " - " + data.size)
-        }
-        exercises.foreach {
-          case (userId, exercise, data) ⇒
-            labelMapperSlacking(exercise.id, userId.id.toString).map(csvWriter.writeExample(_, data))
-        }
-    }
-  }
+  import SparkConfiguration._
+  import cassandrax._
 
   def main(args: Array[String]) {
-    val sc = new SparkContext(sparkConf)
-    //extractActivityTrainingData(sc)
-    //extractExerciseTrainingData(sc)
-    val allExamples = sc.eventTable()
 
-    groupExamplesByUser(allExamples).foreach(x ⇒ Unit)
+    implicit val sc = new SparkContext(sparkConf)
+    val allExamples = sc.eventTable()
+    val outputFolder = "/Users/tombocklisch/data/spark-csv-exercises"
+
+    ActivityDataPreparationPipeline
+      .prepareData(allExamples)
+      .map{
+      case (userId, examples) ⇒
+        val writer = prepareCSVWriter(s"$outputFolder/datasets/$userId")
+        examples.foreach {
+          case (label, data) ⇒
+            writer.writeExample(label, data)
+        }
+        userId
+      }
+      .saveAsTextFile(s"$outputFolder/users")
+
     System.exit(0)
   }
 }
