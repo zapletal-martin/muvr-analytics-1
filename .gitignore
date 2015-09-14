@@ -133,6 +133,14 @@ xcuserdata
 .Rproj.user
 
 ####
+# Python: files python creates
+#
+*.pyc
+*.egg-info
+mlp/dist/
+ipython-analysis/.ipynb_checkpoints
+
+####
 # UNKNOWN: recommended by others, but I can't discover what these files are
 #
 # ...none. Everything is now explained.
