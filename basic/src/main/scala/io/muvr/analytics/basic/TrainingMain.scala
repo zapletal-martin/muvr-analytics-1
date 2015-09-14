@@ -94,38 +94,6 @@ trait DataPreparationPipeline extends LabelMapper with UserFilter {
   def prepareData(rawData: RawData)(implicit sc: SparkContext): RefinedData
 }
 
-object ActivityDataPreparationPipeline
-  extends DataPreparationPipeline
-  with SingleUserFilter
-  with ActivityLabelMapper
-  with RawRDDHelpers {
-
-  val trainingsUser = "9d1a8b72-1651-4d42-acb9-7df4d4ac4cf1"
-
-  type RefinedData = RDD[(String, Iterable[(String, Seq[SensorData])])]
-
-  def prepareData(rawData: RawData)(implicit sc: SparkContext): RefinedData = {
-    // val csvWriter = prepareCSVWriter("/Users/tombocklisch/data/spark-csv-activity")
-
-    groupExamplesByUser(rawData)
-      .map { case (userId, exercises) ⇒
-        println("------------ USER " + userId)
-        exercises.groupBy(_._2).foreach {
-          case (exerciseName, data) ⇒
-            println(exerciseName + " - " + data.size)
-        }
-
-        val examples = exercises.map {
-          case (_, exercise, listOfFusedData) ⇒
-            exercise.id → listOfFusedData.flatMap(data ⇒ data.data)
-        }
-        (userId, examples)
-      }
-      .filter { case (userId, exercise) ⇒ filterUsers(userId) }
-      .map { case (userId, exercise) ⇒ userId.id.toString -> exercise }
-  }
-}
-
 trait CSVHelpers {
   def prepareCSVWriter(rootDir: String) = {
     val csvWriter = CSVTrainingExampleWriter(rootDir)
@@ -151,6 +119,48 @@ trait RawRDDHelpers {
   }
 }
 
+trait UserCenteredDataPreparationPipeline extends DataPreparationPipeline with RawRDDHelpers{
+
+  type RefinedData = RDD[(String, Iterable[(String, Seq[SensorData])])]
+
+  def prepareData(rawData: RawData)(implicit sc: SparkContext): RefinedData = {
+    groupExamplesByUser(rawData)
+      .map { case (userId, exercises) ⇒
+      println("------------ USER " + userId)
+      exercises.groupBy(_._2).foreach {
+        case (exerciseName, data) ⇒
+          println(exerciseName + " - " + data.size)
+      }
+
+      val examples = exercises.flatMap {
+        case (_, exercise, listOfFusedData) ⇒
+          labelMapper(exercise.id).map(_ → listOfFusedData.flatMap(data ⇒ data.data))
+      }
+      (userId, examples)
+    }
+      .filter { case (userId, exercise) ⇒ filterUsers(userId) }
+      .map { case (userId, exercise) ⇒ userId.id.toString -> exercise }
+  }
+}
+
+object ActivityDataPreparationPipeline
+  extends UserCenteredDataPreparationPipeline
+  with SingleUserFilter
+  with ActivityLabelMapper
+  with RawRDDHelpers with Serializable{
+
+  val trainingsUser = "9d1a8b72-1651-4d42-acb9-7df4d4ac4cf1"
+}
+
+object ExerciseDataPreparationPipeline
+  extends UserCenteredDataPreparationPipeline
+  with SingleUserFilter
+  with IdentityLabelMapper
+  with RawRDDHelpers with Serializable{
+
+  val trainingsUser = "9d1a8b72-1651-4d42-acb9-7df4d4ac4cf1"
+}
+
 object TrainingMain extends CSVHelpers{
 
   import SparkConfiguration._
@@ -160,20 +170,34 @@ object TrainingMain extends CSVHelpers{
 
     implicit val sc = new SparkContext(sparkConf)
     val allExamples = sc.eventTable()
-    val outputFolder = "/Users/tombocklisch/data/spark-csv-exercises"
+    val activityOutputFolder = "/Users/tombocklisch/data/spark-csv-activity"
+    val exerciseOutputFolder = "/Users/tombocklisch/data/spark-csv-exercises"
 
     ActivityDataPreparationPipeline
       .prepareData(allExamples)
       .map{
       case (userId, examples) ⇒
-        val writer = prepareCSVWriter(s"$outputFolder/datasets/$userId")
+        val writer = prepareCSVWriter(s"$activityOutputFolder/datasets/$userId")
         examples.foreach {
           case (label, data) ⇒
             writer.writeExample(label, data)
         }
         userId
       }
-      .saveAsTextFile(s"$outputFolder/users")
+      .saveAsTextFile(s"$activityOutputFolder/users")
+
+    ExerciseDataPreparationPipeline
+      .prepareData(allExamples)
+      .map{
+      case (userId, examples) ⇒
+        val writer = prepareCSVWriter(s"$exerciseOutputFolder/datasets/$userId")
+        examples.foreach {
+          case (label, data) ⇒
+            writer.writeExample(label, data)
+        }
+        userId
+    }
+      .saveAsTextFile(s"$exerciseOutputFolder/users")
 
     System.exit(0)
   }
