@@ -1,154 +1,131 @@
 from neon.backends import gen_backend
-from neon.layers import FCLayer, DataLayer, CostLayer, DropOutLayer
-from neon.models import MLP
-from neon.transforms import RectLin, Tanh, Logistic, CrossEntropy
-from neon.experiments import FitPredictErrorExperiment
-from neon.params import val_init
-from os.path import expanduser, exists
-from os import remove
+from neon.layers import Affine, Dropout, GeneralizedCost
+from neon.transforms import Rectlin, Logistic
+from neon.transforms.cost import CrossEntropyMulti
+from neon.initializers import Uniform, Constant
 import time
+from neon.optimizers import GradientDescentMomentum
+from neon.models import Model
+from neon.callbacks.callbacks import Callbacks
+from neon.transforms import Misclassification
+import os
 import logging
-import utils
+from training import utils
 
 
 class MLPMeasurementModel(object):
-    # General settings
-    max_epochs = 100
+    """Wrapper around a neon MLP model that controls training parameters and configuration of the model."""
 
-    epoch_step_size = 5
-
-    batch_size = 30  # max(10, min(100, dataset.num_train_examples/10))
-
+    # Training settings
+    max_epochs = 10
+    batch_size = 30
+    lrate = 0.01
     random_seed = 42  # Take your lucky number
 
-    feature_count = 400
+    # Storage settings for the different output files
+    Model_Filename = 'workout-mlp.pkl'
+    Callback_Store_Filename = 'workout-mlp.h5'
+    Intermediate_Model_Filename = 'workout-mlp-ep'
 
-    num_labels = 29
+    def __init__(self, root_path):
+        """Initialize paths and loggers of the model."""
+        # Storage director of the model and its snapshots
+        self.root_path = root_path
+        self.model_path = os.path.join(self.root_path, self.Model_Filename)
 
-    # Storage director of the model and its snapshots
-    file_path = expanduser('~/data/workout-dl/workout-mlp.prm')
+        utils.remove_if_exists(self.model_path)
 
-    if exists(file_path):
-        remove(file_path)
+        # Set logging output...
+        for name in ["neon.util.persist"]:
+            dslogger = logging.getLogger(name)
+            dslogger.setLevel(40)
 
-    # Captured errors for the different epochs
-    train_err = []
-    test_err = []
+        print 'Epochs: %d Batch-Size: %d' % (self.max_epochs, self.batch_size)
 
-    @staticmethod
-    def learning_conf(current_epoch):
-        if current_epoch < 100:
-            lrate = 0.01
-        elif current_epoch < 200:
-            lrate = 0.003
-        else:
-            lrate = 0.001
+    def generate_default_model(self, num_labels):
+        """Generate layers and a MLP model using the given settings."""
+        init_norm = Uniform(low=-0.1, high=0.1)
+        bias_init = Constant(val=1.0)
 
-        return {
-            'lr_params': {
-                'learning_rate': lrate,
-                'momentum_params': {'coef': 0.9, 'type': 'constant'}},
-            'type': 'gradient_descent_momentum'
-        }
-
-    print 'Epochs: %d Batch-Size: %d' % (max_epochs, batch_size)
-
-    # Generate layers and a MLP model using the given settings
-    def model_gen(self, last_epoch, max_epoch):
-
-        lconf = self.learning_conf(last_epoch)
         layers = []
-
-        layers.append(DataLayer(nout=self.feature_count))
-
-        layers.append(FCLayer(
-            name="fc_1",
-            nout=500,
-            lrule_init=lconf,
-            weight_init=val_init.UniformValGen(low=-0.1, high=0.1),
-            activation=RectLin()
-        ))
-
-        layers.append(DropOutLayer(
-            name="do_1",
-            keep=0.9
-        ))
-
-        layers.append(FCLayer(
-            name="fc_2",
+        layers.append(Affine(
             nout=250,
-            lrule_init=lconf,
-            weight_init=val_init.UniformValGen(low=-0.1, high=0.1),
-            activation=RectLin()
-        ))
+            init=init_norm,
+            bias=bias_init,
+            activation=Rectlin()))
 
-        layers.append(DropOutLayer(
+        layers.append(Dropout(
             name="do_2",
-            keep=0.9
-        ))
+            keep=0.9))
 
-        layers.append(FCLayer(
-            name="fc_3",
+        layers.append(Affine(
             nout=100,
-            lrule_init=lconf,
-            weight_init=val_init.UniformValGen(low=-0.1, high=0.1),
-            activation=RectLin()
-        ))
+            init=init_norm,
+            bias=bias_init,
+            activation=Rectlin()))
 
-        layers.append(DropOutLayer(
+        layers.append(Dropout(
             name="do_3",
-            keep=0.9
-        ))
+            keep=0.9))
 
-        layers.append(FCLayer(
-            name="fc_4",
-            nout=self.num_labels,
-            lrule_init=lconf,
-            weight_init=val_init.UniformValGen(low=-0.1, high=0.1),
-            activation=Logistic()
-        ))
+        layers.append(Affine(
+            nout=num_labels,
+            init=init_norm,
+            bias=bias_init,
+            activation=Logistic()))
 
-        layers.append(CostLayer(
-            name='cost',
-            ref_layer=layers[0],
-            cost=CrossEntropy()
-        )
-        )
-        model = MLP(num_epochs=max_epoch, batch_size=self.batch_size, layers=layers, serialized_path=self.file_path)
+        model = Model(layers=layers)
         return model
 
-    def train(self, dataset):
-        # Set logging output...
-        for name in ["neon.util.persist", "neon.datasets.dataset", "neon.models.mlp"]:
-            dslogger = logging.getLogger(name)
-            dslogger.setLevel(20)
-
+    def train(self, dataset, model=None):
+        """Trains the passed model on the given dataset. If no model is passed, `generate_default_model` is used."""
         print "Starting training..."
         start = time.time()
-        train_err = []
-        test_err = []
-        for current_epoch in range(0, self.max_epochs + 1 - self.epoch_step_size, self.epoch_step_size):
-            next_max_epoch = current_epoch + self.epoch_step_size
 
-            # set up the model and experiment
-            model = self.model_gen(current_epoch, next_max_epoch)
+        # The training will be run on the CPU. If a GPU is available it should be used instead.
+        backend = gen_backend(backend='cpu',
+                              batch_size=self.batch_size,
+                              rng_seed=self.random_seed,
+                              stochastic_round=False)
 
-            # Uncomment line below to run on CPU backend
-            backend = gen_backend(rng_seed=self.random_seed)
-            # Uncomment line below to run on GPU using cudanet backend
-            # backend = gen_backend(rng_seed=0, gpu='cudanet')
-            experiment = FitPredictErrorExperiment(model=model,
-                                                   backend=backend,
-                                                   dataset=dataset)
+        cost = GeneralizedCost(
+            name='cost',
+            costfunc=CrossEntropyMulti())
 
-            # Run the training, and dump weights
-            res = experiment.run()
-            train_err.append(res['train']['MisclassPercentage_TOP_1'])
-            test_err.append(res['test']['MisclassPercentage_TOP_1'])
+        optimizer = GradientDescentMomentum(
+            learning_rate=self.lrate,
+            momentum_coef=0.9)
 
-            print "Finished epoch " + str(next_max_epoch)
+        # set up the model and experiment
+        if not model:
+            model = self.generate_default_model(dataset.num_labels)
 
+        callbacks = Callbacks(model, dataset.train(),
+                              output_file=os.path.join(self.root_path, self.Callback_Store_Filename),
+                              progress_bar=True,
+                              valid_set=dataset.test(),
+                              valid_freq=1)
+
+        # add a callback that saves the best model state
+        callbacks.add_save_best_state_callback(self.model_path)
+        callbacks.add_serialize_callback(
+            serialize_schedule=1,
+            save_path=os.path.join(self.root_path, self.Intermediate_Model_Filename),
+            history=100)
+
+        # Uncomment line below to run on GPU using cudanet backend
+        # backend = gen_backend(rng_seed=0, gpu='cudanet')
+        model.fit(
+            dataset.train(),
+            optimizer=optimizer,
+            num_epochs=self.max_epochs,
+            cost=cost,
+            callbacks=callbacks)
+
+        print('Misclassification error = %.1f%%'
+              % (model.eval(dataset.test(), metric=Misclassification()) * 100))
         print "Finished training!"
         end = time.time()
         print "Duration", end - start, "seconds"
-        return utils.get_bytes_from_file(self.file_path)
+
+        return model
