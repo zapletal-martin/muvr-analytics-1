@@ -19,7 +19,7 @@ trait TrainingExampleWriter {
     exerciseId.split(Exercise_Id_Name_Separator).last
 
   def extractGroupFrom(exerciseId: String) =
-    exerciseId.split(Exercise_Id_Name_Separator).last
+    exerciseId.split(Exercise_Id_Name_Separator).head
 
   def writeExample(exerciseId: String, data: Seq[SensorData]): Unit
 }
