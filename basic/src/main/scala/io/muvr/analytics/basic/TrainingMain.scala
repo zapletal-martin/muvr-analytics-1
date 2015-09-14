@@ -1,6 +1,6 @@
 package io.muvr.analytics.basic
 
-import java.io.File
+import java.io.{IOException, File}
 import java.nio.file.{Files, Paths}
 import java.util.UUID
 
@@ -154,7 +154,7 @@ object ActivityDataPreparationPipeline
 
 object ExerciseDataPreparationPipeline
   extends UserCenteredDataPreparationPipeline
-  with SingleUserFilter
+  with AllUsers
   with IdentityLabelMapper
   with RawRDDHelpers with Serializable{
 
@@ -166,12 +166,23 @@ object TrainingMain extends CSVHelpers{
   import SparkConfiguration._
   import cassandrax._
 
+  def removeDirectory(directory: String): Unit =
+    try {
+      FileUtils.deleteDirectory(new File(directory))
+    } catch {
+      case e: IOException =>
+        println(s"Failed to delete directory $directory. $e")
+    }
+
   def main(args: Array[String]) {
 
     implicit val sc = new SparkContext(sparkConf)
     val allExamples = sc.eventTable()
     val activityOutputFolder = "/Users/tombocklisch/data/spark-csv-activity"
     val exerciseOutputFolder = "/Users/tombocklisch/data/spark-csv-exercises"
+
+    removeDirectory(activityOutputFolder)
+    removeDirectory(exerciseOutputFolder)
 
     ActivityDataPreparationPipeline
       .prepareData(allExamples)
