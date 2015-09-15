@@ -13,7 +13,7 @@ This part of the project can be viewed as a data science playground. The models 
 
 #### Other components of the system
 - [muvr-server](https://github.com/muvr/muvr-server) CQRS/ES cluster 
-- [muvr-ios](https://github.com/muvr/muvr-ios)iOS application showcasing mobile machine learning and data collection
+- [muvr-ios](https://github.com/muvr/muvr-ios) iOS application showcasing mobile machine learning and data collection
 - [muvr-pebble](https://github.com/muvr/muvr-pebble) Pebble application, example implementation of a wearable device 
 - [muvr-preclassification](https://github.com/muvr/muvr-preclassification) mobile data processing and classification
 
