@@ -25,11 +25,15 @@ Make sure your Java is up to date (>= 1.8.0) and you got [sbt](http://www.scala-
 ```
 git clone git@github.com:muvr/muvr-analytics.git
 
-# To run the data preparation pipeline use the scala spark job
+# To deserialize the messages stored in the cassandra cluster 
+# we need some libraries of the `muvr-server`
+git clone git@github.com:muvr/muvr-server.git
+
 cd muvr-analytics
 ```
 There are two steps to train models that can be used by mobile clients. First the data needs to be prepared. This includes reading data from the cassandra cluser and grouping it in a way that a single group contains all examples the machine learning algorithm will be trained on. 
 ```
+# To run the data preparation pipeline use the scala spark job
 ./run_spark.sh "basic.DatasetExtractionMain"
 ```
 The second step is to train a machine learning model for each of this groups.
