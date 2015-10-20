@@ -10,7 +10,7 @@ libraryDependencies ++= Seq(
   spark.core % "provided",
   spark.mllib % "provided",
   hadoop.client % "provided",
-
+  csv,
   akka.analytics_cassandra % "runtime",
   spray.client,
   akka.persistence % "runtime",

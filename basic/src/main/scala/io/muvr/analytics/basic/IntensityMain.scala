@@ -55,11 +55,11 @@ object IntensityPipeline {
 
   def intensityPipeline(events: RawInputData, useHistory: Int, predictDays: Int): PredictionPipeline = { userId ⇒
     val allInputData = filterEvents(userId, events)
-    val distinctMuscleGroupIds = allInputData.flatMap(_.session.muscleGroupIds).distinct().collect()
+    val distinctExerciseModels = allInputData.map(_.session.exerciseModel).distinct().collect()
 
     Suggestions(
-      distinctMuscleGroupIds.flatMap { mgid ⇒
-        val inputData = allInputData.filter(_.session.muscleGroupIds.contains(mgid))
+      distinctExerciseModels.flatMap { exerciseModel ⇒
+        val inputData = allInputData.filter(_.session.exerciseModel == exerciseModel)
         val inputDataSize = inputData.count()
 
         if (inputDataSize == 0) Nil
@@ -89,7 +89,7 @@ object IntensityPipeline {
 
             val predictedIntensity = intensityModel.predict(Vectors.dense(paddedTestData))
 
-            intensityPredictions = intensityPredictions :+ Suggestion.Intensity(now.addDays(i + 1), SuggestionSource.History, mgid, predictedIntensity)
+            intensityPredictions = intensityPredictions :+ Suggestion.Intensity(now.addDays(i + 1), SuggestionSource.History, exerciseModel, predictedIntensity)
           }
 
           intensityPredictions

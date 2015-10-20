@@ -125,6 +125,20 @@ xcuserdata
 
 *.moved-aside
 
+####
+# R: files R Studio creates but should not checked into the repository
+#
+.RData
+.Rhistory
+.Rproj.user
+
+####
+# Python: files python creates
+#
+*.pyc
+*.egg-info
+mlp/dist/
+ipython-analysis/.ipynb_checkpoints
 
 ####
 # UNKNOWN: recommended by others, but I can't discover what these files are
@@ -133,6 +147,7 @@ xcuserdata
 .lock-waf_darwin_build
 
 .idea
+*.iml
 
 Pods
 *.xcworkspace
@@ -142,5 +157,5 @@ target
 journal
 snapshots
 
-
+logs/
 checkpoint
