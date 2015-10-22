@@ -53,11 +53,17 @@ class AccelerationDataset(object):
     def load_examples(self, directory):
         """Load examples contained in the directory into an example collection. Examples need to be stored in CSVs."""
         self.label_mapping = {}
-        csv_files = os.listdir(directory)
+        csv_files = filter(lambda f: f.endswith("csv"), os.listdir(directory))
         Xs = []
         ys = []
         for f in csv_files:
-            X, label = self.load_example(os.path.join(directory, f))
+            try:
+                X, label = self.load_example(os.path.join(directory, f))
+
+            except Exception as e:
+                print("Can't read csv file: %s, error: %s" % (f, e.message))
+                continue
+
             if label not in self.label_mapping:
                 self.label_mapping[label] = len(self.label_mapping)
             Xs.append(X)
