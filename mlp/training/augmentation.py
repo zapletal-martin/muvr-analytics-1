@@ -19,9 +19,12 @@ class SignalAugmenter(object):
         augmented = []
         augmented_labels = []
         for i, features in enumerate(examples.features):
-            single_augmented, single_labels = self.augment_example(features, examples.labels[i], target_length)
-            augmented.append(single_augmented)
-            augmented_labels.append(single_labels)
+            if np.shape(features)[1] >= target_length:
+                single_augmented, single_labels = self.augment_example(features, examples.labels[i], target_length)
+                augmented.append(single_augmented)
+                augmented_labels.append(single_labels)
+            else:
+                print("Dropped an example because it was to short. Length: %d" % np.shape(features)[1] )
 
         return ExampleColl(np.vstack(augmented), np.hstack(augmented_labels))
 
