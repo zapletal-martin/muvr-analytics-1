@@ -35,16 +35,16 @@ class AccelerationDataset(object):
     initialized = False
 
     # Mapping of integer class labels to strings
-    human_labels = {}
-    label_mapping = {}
+    id_label_mapping = {}
+    label_id_mapping = {}
 
     def human_label_for(self, label_id):
         """Convert a label id into a human readable string label."""
-        return self.human_labels[label_id]
+        return self.id_label_mapping[label_id]
 
     def save_labels(self, filename):
         """Store the label <--> id mapping to file. The id is defined by the line number."""
-        labels = collections.OrderedDict(sorted(self.human_labels.items())).values()
+        labels = collections.OrderedDict(sorted(self.id_label_mapping.items())).values()
 
         f = open(filename, 'wb')
 
@@ -52,13 +52,14 @@ class AccelerationDataset(object):
             f.write("%s\n" % label)
         f.close()
 
-    def load_examples(self, path):
+    def load_examples(self, path, label_mapper):
         """Load examples contained in the path into an example collection. Examples need to be stored in CSVs.
 
+        The label_mapper allows to map a loaded label to a different label, e.g. to combine multiple labels into one.
         Arguments:
         path -- can be directory or zipfile. If zipfile, it will be extract to a tmp path with prefix /tmp/muvr-training-
         """
-        self.label_mapping = {}
+        self.label_id_mapping = {}
         root_directory = ""
         if os.path.isdir(path):
             root_directory = path
@@ -79,11 +80,12 @@ class AccelerationDataset(object):
         Xs = []
         ys = []
         for f in csv_files:
-            X, label = self.load_example(f)
-            if label not in self.label_mapping:
-                self.label_mapping[label] = len(self.label_mapping)
+            X, read_label = self.load_example(f)
+            label = label_mapper(read_label)
+            if label not in self.label_id_mapping:
+                self.label_id_mapping[label] = len(self.label_id_mapping)
             Xs.append(X)
-            ys.append(self.label_mapping[label])
+            ys.append(self.label_id_mapping[label])
 
         return ExampleColl(Xs, ys)
 
@@ -104,15 +106,26 @@ class AccelerationDataset(object):
         return X, label
 
     # Load label mapping and train / test data from disk.
-    def __init__(self, directory):
-        """Load the dataset data from the directory."""
+    def __init__(self, directory, test_directory=None, label_mapper=lambda x: x):
+        """Load the dataset data from the directory.
+        
+        If two directories are passed the second is interpreted as the test dataset. If only one dataset gets passed,
+         this dataset will get split into test and train. The label_mapper`allows to modify loaded labels. This is 
+         useful e.g. to map multiple labels to a single on ("arms/biceps-curl" --> "-/exercising", ...)."""
 
         self.logger.info("Loading DS from files...")
         self.augmenter = SignalAugmenter(augmentation_start=0.1, augmentation_end=0.9)
-        examples = self.load_examples(directory)
-        examples.shuffle()
+        
+        # If we get provided with a test directory, we are going to use that. Otherwise we will split the dataset in
+        # test and train on our own.
+        if test_directory:
+            train = self.load_examples(directory, label_mapper)
+            test = self.load_examples(test_directory, label_mapper)
+        else:
+            examples = self.load_examples(directory, label_mapper)
+            examples.shuffle()
 
-        train, test = examples.split(self.TRAIN_RATIO)
+            train, test = examples.split(self.TRAIN_RATIO)
 
         augmented_train = self.augmenter.augment_examples(train, 400)
         print "Augmented `train` with %d examples, %d originally" % (
@@ -126,13 +139,13 @@ class AccelerationDataset(object):
         augmented_test.shuffle()
         augmented_test.scale_features(self.Feature_Range, self.Feature_Mean)
 
-        self.human_labels = {v: k for k, v in self.label_mapping.items()}
+        self.id_label_mapping = {v: k for k, v in self.label_id_mapping.items()}
         self.X_train = self.flatten2d(augmented_train.features)
         self.y_train = augmented_train.labels
         self.X_test = self.flatten2d(augmented_test.features)
         self.y_test = augmented_test.labels
 
-        self.num_labels = len(self.human_labels)
+        self.num_labels = len(self.id_label_mapping)
         self.num_features = self.X_train.shape[1]
         self.num_train_examples = self.X_train.shape[0]
         self.num_test_examples = self.X_test.shape[0]
