@@ -26,7 +26,7 @@ class ExampleColl(object):
 
     def scale_features(self, feature_range, feature_mean):
         """Scale the features of the examples using the passed range and mean."""
-        self.features = np.subtract(np.divide(self.features, feature_range / 2), feature_mean)
+        self.features = np.divide(np.subtract(self.features, feature_mean), feature_range / 2.0)
 
     def shuffle(self):
         """Shuffle the examples in this collection randomly."""
