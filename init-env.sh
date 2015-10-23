@@ -9,7 +9,7 @@ fi
 
 # Create virtual env
 VENV=venv
-pip install virtualenv
+sudo pip install virtualenv
 rm -rf $VENV
 virtualenv $VENV -p /usr/bin/python2.7
 source $VENV/bin/activate
