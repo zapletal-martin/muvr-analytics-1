@@ -43,6 +43,22 @@ cd mlp
 ```
 This will train a Multi Layer Perceptron on the previously generated datasets.
 
+### Setup Python environment
+
+```bash
+cd muvr-analytics
+./init-env.sh
+```
+To start development on Python code or notebooks
+```bash
+source venv/bin/activate
+# After you call this line, you should see (venv) added at the beginning of your shell prompt. 
+```
+Start notebooks
+```bash
+jupyter notebook
+```
+
 ### Issues
 
 For any bugs or feature requests please:
