@@ -33,6 +33,9 @@ cd muvr-analytics
 ```
 There are two steps to train models that can be used by mobile clients. First the data needs to be prepared. This includes reading data from the cassandra cluser and grouping it in a way that a single group contains all examples the machine learning algorithm will be trained on. 
 ```
+# Build the jar that will be run using spark
+sbt assembly
+
 # To run the data preparation pipeline use the scala spark job
 ./run_spark.sh "basic.DatasetExtractionMain"
 ```
