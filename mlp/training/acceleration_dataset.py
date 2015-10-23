@@ -4,6 +4,8 @@ from neon.data import DataIterator
 import logging
 import os
 import csv
+import zipfile
+import tempfile
 from training.augmentation import SignalAugmenter
 from training.examples import ExampleColl
 
@@ -50,20 +52,34 @@ class AccelerationDataset(object):
             f.write("%s\n" % label)
         f.close()
 
-    def load_examples(self, directory):
-        """Load examples contained in the directory into an example collection. Examples need to be stored in CSVs."""
+    def load_examples(self, path):
+        """Load examples contained in the path into an example collection. Examples need to be stored in CSVs.
+
+        Arguments:
+        path -- can be directory or zipfile. If zipfile, it will be extract to a tmp path with prefix /tmp/muvr-training-
+        """
         self.label_mapping = {}
-        csv_files = filter(lambda f: f.endswith("csv"), os.listdir(directory))
+        root_directory = ""
+        if os.path.isdir(path):
+            root_directory = path
+        else:
+            # Zip file - extract to temp root_directory first
+            root_directory = tempfile.mkdtemp(prefix="/tmp/muvr-training-")
+            zipfile.ZipFile(path, 'r').extractall(root_directory)
+
+        #csv_files = filter(lambda f: f.endswith("csv"), os.listdir(root_directory))
+        csv_files = []
+        def append_csv_file(arg, direname, names):
+            for name in names:
+                f = os.path.join(root_directory, direname, name)
+                if os.path.isfile(f) and f.endswith("csv"):
+                    csv_files.append(f)
+
+        os.path.walk(root_directory, append_csv_file, None)
         Xs = []
         ys = []
         for f in csv_files:
-            try:
-                X, label = self.load_example(os.path.join(directory, f))
-
-            except Exception as e:
-                print("Can't read csv file: %s, error: %s" % (f, e.message))
-                continue
-
+            X, label = self.load_example(f)
             if label not in self.label_mapping:
                 self.label_mapping[label] = len(self.label_mapping)
             Xs.append(X)
