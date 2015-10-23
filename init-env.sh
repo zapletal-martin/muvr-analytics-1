@@ -1,6 +1,12 @@
 #!/bin/bash
 set -xe
 
+# Install pip
+if ! [ `command -v pip` ]
+then
+  sudo easy_install pip
+fi
+
 # Create virtual env
 VENV=venv
 pip install virtualenv
