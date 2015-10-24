@@ -1,0 +1,6 @@
+jupyter==1.0.0
+sklearn
+scipy==0.16.0
+matplotlib==1.4.3
+ipy-table==1.12
+py4j==0.9

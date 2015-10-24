@@ -138,7 +138,10 @@ xcuserdata
 *.pyc
 *.egg-info
 mlp/dist/
+mlp/build/
 ipython-analysis/.ipynb_checkpoints
+ipython-analysis/models/
+venv/
 
 ####
 # UNKNOWN: recommended by others, but I can't discover what these files are
