@@ -5,15 +5,24 @@ from converters import neon2iosmlp
 from training.acceleration_dataset import AccelerationDataset
 from training.mlp_model import MLPMeasurementModel
 
+def writeModel2File(layers, output_filename):
+    f = open(output_filename, 'w')
+    data = " ".join(str(e) for e in layers)
+    f.write(data)
+    f.close()
+
 
 def learn_model_from_data(dataset_directory, working_directory):
     dataset = AccelerationDataset(dataset_directory)
     mlpmodel = MLPMeasurementModel(working_directory)
 
-    mlpmodel.train(dataset)
+    trainedModel = mlpmodel.train(dataset)
 
     dataset.save_labels(os.path.join(working_directory, 'labels.txt'))
     neon2iosmlp.convert(mlpmodel.model_path, os.path.join(working_directory, 'weights.raw'))
+
+    layers = mlpmodel.getLayer(dataset, trainedModel)
+    writeModel2File(layers, os.path.join(working_directory, 'layers.txt'))
 
     return mlpmodel.model_path
 
