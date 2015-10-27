@@ -16,10 +16,6 @@ from training import utils
 class MLPMeasurementModel(object):
     """Wrapper around a neon MLP model that controls training parameters and configuration of the model."""
 
-    # Training settings
-    max_epochs = 10
-    batch_size = 30
-    lrate = 0.01
     random_seed = 42  # Take your lucky number
 
     # Storage settings for the different output files
@@ -27,13 +23,17 @@ class MLPMeasurementModel(object):
     Callback_Store_Filename = 'workout-mlp.h5'
     Intermediate_Model_Filename = 'workout-mlp-ep'
 
-    def __init__(self, root_path):
+    def __init__(self, root_path, lrate=0.01, batch_size=30, max_epochs=10):
         """Initialize paths and loggers of the model."""
         # Storage director of the model and its snapshots
         self.root_path = root_path
         self.model_path = os.path.join(self.root_path, self.Model_Filename)
-
         utils.remove_if_exists(self.model_path)
+        
+        # Training settings
+        self.lrate = lrate
+        self.batch_size = batch_size
+        self.max_epochs = max_epochs
 
         # Set logging output...
         for name in ["neon.util.persist"]:
