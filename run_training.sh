@@ -18,6 +18,9 @@ fi
 VISUAL="$OUTPUT/visualisation.png"
 EVAL="$OUTPUT/evaluation.csv"
 
+rm -f $VISUAL
+rm -f $EVAL
+
 python mlp/start_training.py -h
 printf "\n\nSTART TRAINING & EVALUATION\n\n"
 
