@@ -72,7 +72,7 @@ class AccelerationDataset(object):
         csv_files = []
         def append_csv_file(arg, direname, names):
             for name in names:
-                f = os.path.join(root_directory, direname, name)
+                f = os.path.join(direname, name)
                 if os.path.isfile(f) and f.endswith("csv"):
                     csv_files.append(f)
 
@@ -108,14 +108,14 @@ class AccelerationDataset(object):
     # Load label mapping and train / test data from disk.
     def __init__(self, directory, test_directory=None, label_mapper=lambda x: x):
         """Load the dataset data from the directory.
-        
+
         If two directories are passed the second is interpreted as the test dataset. If only one dataset gets passed,
-         this dataset will get split into test and train. The label_mapper`allows to modify loaded labels. This is 
+         this dataset will get split into test and train. The label_mapper`allows to modify loaded labels. This is
          useful e.g. to map multiple labels to a single on ("arms/biceps-curl" --> "-/exercising", ...)."""
 
         self.logger.info("Loading DS from files...")
         self.augmenter = SignalAugmenter(augmentation_start=0.1, augmentation_end=0.9)
-        
+
         # If we get provided with a test directory, we are going to use that. Otherwise we will split the dataset in
         # test and train on our own.
         if test_directory:
