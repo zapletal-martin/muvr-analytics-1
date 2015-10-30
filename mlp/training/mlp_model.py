@@ -16,14 +16,14 @@ from training import utils
 class MLPMeasurementModel(object):
     """Wrapper around a neon MLP model that controls training parameters and configuration of the model."""
 
-    random_seed = 42  # Take your lucky number
+    random_seed = 666  # Take your lucky number
 
     # Storage settings for the different output files
     Model_Filename = 'workout-mlp.pkl'
     Callback_Store_Filename = 'workout-mlp.h5'
     Intermediate_Model_Filename = 'workout-mlp-ep'
 
-    def __init__(self, root_path, lrate=0.01, batch_size=30, max_epochs=10):
+    def __init__(self, root_path, lrate=0.01, batch_size=30, max_epochs=30):
         """Initialize paths and loggers of the model."""
         # Storage director of the model and its snapshots
         self.root_path = root_path

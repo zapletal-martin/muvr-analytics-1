@@ -67,14 +67,16 @@ def learn_model_from_data(dataset, working_directory, model_name):
 def predict(model, dataset):
     """Calculate the prediction of dataset with trained model"""
     dataset.reset()
-    # TODO: This (5, 0) is hardcoded number of labels
-    predictions = np.empty((5, 0), dtype="float32")
+    predictions = None
     nprocessed = 0
     for x, t in dataset:
         pred = model.fprop(x, inference=True).asnumpyarray()
         bsz = min(dataset.ndata - nprocessed, model.be.bsz)
         nprocessed += bsz
-        predictions = np.hstack((predictions, pred[:,:bsz]))
+        if predictions is None:
+            predictions = pred[:,:bsz]
+        else:
+            predictions = np.hstack((predictions, pred[:,:bsz]))
     return predictions
 
 
