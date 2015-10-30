@@ -103,12 +103,7 @@ class AccelerationDataset(object):
             for row in csv_data:
                 label = ""
                 new_data = []
-                if len(row) == 5:
-                    # Old format of CSV (len = 5)
-                    #   Arms | biceps-curl | X | Y | Z
-                    label = row[0] + "/" + row[1]
-                    new_data = row[2:]
-                elif len(row) == 7:
+                if len(row) == 7:
                     # New format (len = 7)
                     #   X | Y | Z | '' | '' | '' | ''(without label)
                     #   X | Y | Z | biceps-curl | intensity | weight | repetition
@@ -118,6 +113,8 @@ class AccelerationDataset(object):
                     else:
                         # ignore the information (intensity/weight/repetition)
                         label = row[3]
+                else:
+                    raise Exception("Bad format")
                 if label != "":
                     old_data = label_data_mapping.get(label, [])
                     old_data.append(new_data)
@@ -155,13 +152,13 @@ class AccelerationDataset(object):
         print "Augmented `train` with %d examples, %d originally" % (
             augmented_train.num_examples - train.num_examples, train.num_examples)
         augmented_train.shuffle()
-        augmented_train.scale_features(self.Feature_Range, self.Feature_Mean)
+        # augmented_train.scale_features(self.Feature_Range, self.Feature_Mean)
 
         augmented_test = self.augmenter.augment_examples(test, 400)
         print "Augmented `test` with %d examples, %d originally" % (
             augmented_test.num_examples - test.num_examples, test.num_examples)
         augmented_test.shuffle()
-        augmented_test.scale_features(self.Feature_Range, self.Feature_Mean)
+        # augmented_test.scale_features(self.Feature_Range, self.Feature_Mean)
 
         self.id_label_mapping = {v: k for k, v in self.label_id_mapping.items()}
         self.X_train = self.flatten2d(augmented_train.features)

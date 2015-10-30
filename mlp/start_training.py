@@ -67,7 +67,8 @@ def learn_model_from_data(dataset, working_directory, model_name):
 def predict(model, dataset):
     """Calculate the prediction of dataset with trained model"""
     dataset.reset()
-    predictions = np.empty((3, 0), dtype="float32")
+    # TODO: This (5, 0) is hardcoded number of labels
+    predictions = np.empty((5, 0), dtype="float32")
     nprocessed = 0
     for x, t in dataset:
         pred = model.fprop(x, inference=True).asnumpyarray()

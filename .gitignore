@@ -162,3 +162,5 @@ snapshots
 
 logs/
 checkpoint
+output*
+
