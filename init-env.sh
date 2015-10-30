@@ -35,11 +35,12 @@ if ! [ `command -v pv` ]
 then
   brew install pv
 fi
-[ pv spark-1.5.1-bin-hadoop2.6.tgz | tar xzf - ] || tar -xzf spark-1.5.1-bin-hadoop2.6.tgz
+[ $(pv spark-1.5.1-bin-hadoop2.6.tgz | tar xzf -) ] || tar xzf spark-1.5.1-bin-hadoop2.6.tgz
 cd -
 cat >> $VENV/bin/activate << EOF
 export SPARK_HOME=`pwd`/$VENV/spark-1.5.1-bin-hadoop2.6
 export PYTHONPATH=$SPARK_HOME/python:$SPARK_HOME/python/build:$PYTHONPATH
 PATH=$SPARK_HOME/bin:$PATH
 EOF
+source $VENV/bin/activate
 
