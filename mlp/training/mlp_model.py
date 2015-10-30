@@ -1,5 +1,5 @@
 from neon.backends import gen_backend
-from neon.layers import Affine, Dropout, GeneralizedCost
+from neon.layers import Affine, Dropout, GeneralizedCost, Linear
 from neon.transforms import Rectlin, Logistic
 from neon.transforms.cost import CrossEntropyMulti
 from neon.initializers import Uniform, Constant
@@ -129,3 +129,10 @@ class MLPMeasurementModel(object):
         print "Duration", end - start, "seconds"
 
         return model
+
+    def getLayer(self, dataset, model):
+        layerconfig = [dataset.num_features]
+        for layer in model.layers:
+            if isinstance(layer, Linear):
+                layerconfig.append(layer.nout)
+        return layerconfig

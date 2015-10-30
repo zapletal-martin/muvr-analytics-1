@@ -36,3 +36,10 @@ def convert(neon_model_path, output_filename):
 
     f.write(bin_data)
     f.close()
+
+
+def write_model_to_file(layers, output_filename):
+    f = open(output_filename, 'w')
+    data = " ".join(str(e) for e in layers)
+    f.write(data)
+    f.close()
