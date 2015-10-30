@@ -5,17 +5,17 @@ from converters import neon2iosmlp
 from training.acceleration_dataset import AccelerationDataset
 from training.mlp_model import MLPMeasurementModel
 
-def learn_model_from_data(dataset_directory, working_directory):
+def learn_model_from_data(dataset_directory, working_directory, user_id):
     dataset = AccelerationDataset(dataset_directory)
     mlpmodel = MLPMeasurementModel(working_directory)
 
     trainedModel = mlpmodel.train(dataset)
 
-    dataset.save_labels(os.path.join(working_directory, 'labels.txt'))
-    neon2iosmlp.convert(mlpmodel.model_path, os.path.join(working_directory, 'weights.raw'))
+    dataset.save_labels(os.path.join(working_directory, user_id + '_model.labels.txt'))
+    neon2iosmlp.convert(mlpmodel.model_path, os.path.join(working_directory, user_id + '_model.weights.raw'))
 
     layers = mlpmodel.getLayer(dataset, trainedModel)
-    neon2iosmlp.write_model_to_file(layers, os.path.join(working_directory, 'layers.txt'))
+    neon2iosmlp.write_model_to_file(layers, os.path.join(working_directory, user_id + '_model.layers.txt'))
 
     return mlpmodel.model_path
 
@@ -37,7 +37,8 @@ def main(sc):
     rdd = sc.textFile(user_rdds)
     models = rdd.map(lambda user_id:
                      learn_model_from_data(dataset_directory=os.path.join(root_directory, 'datasets', user_id),
-                                           working_directory=os.path.join(root_directory, 'models', user_id)))
+                                           working_directory=os.path.join(root_directory, 'models', user_id),
+                                           user_id=user_id))
 
     models.foreach(print_it)
 

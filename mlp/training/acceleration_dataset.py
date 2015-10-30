@@ -72,7 +72,7 @@ class AccelerationDataset(object):
         csv_files = []
         def append_csv_file(arg, direname, names):
             for name in names:
-                f = os.path.join(root_directory, direname, name)
+                f = os.path.join(direname, name)
                 if os.path.isfile(f) and f.endswith("csv"):
                     csv_files.append(f)
 
@@ -80,42 +80,63 @@ class AccelerationDataset(object):
         Xs = []
         ys = []
         for f in csv_files:
-            X, read_label = self.load_example(f)
-            label = label_mapper(read_label)
-            if label not in self.label_id_mapping:
-                self.label_id_mapping[label] = len(self.label_id_mapping)
-            Xs.append(X)
-            ys.append(self.label_id_mapping[label])
+            label_dictionary = self.load_example(f)
+            for read_label, X in label_dictionary.iteritems():
+                label = label_mapper(read_label)
+                if label not in self.label_id_mapping:
+                    self.label_id_mapping[label] = len(self.label_id_mapping)
+                Xs.append(X)
+                ys.append(self.label_id_mapping[label])
 
         return ExampleColl(Xs, ys)
 
     @staticmethod
     def load_example(filename):
-        """Load a single example from a CSV file."""
+        """Load a single example from a CSV file.
+        Return a dictionary object with key is label, value is the list of data with that label"""
+
         with open(filename, 'rb') as csvfile:
             dialect = csv.Sniffer().sniff(csvfile.read(1024))
             csvfile.seek(0)
             csv_data = csv.reader(csvfile, dialect)
-            X = []
+            label_data_mapping = {}
             for row in csv_data:
-                label = row[0] + "/" + row[1]
-                X.append(row[2:])
+                label = ""
+                new_data = []
+                if len(row) == 7:
+                    # New format (len = 7)
+                    #   X | Y | Z | '' | '' | '' | ''(without label)
+                    #   X | Y | Z | biceps-curl | intensity | weight | repetition
+                    new_data = row[0:3]
+                    if row[3] == "":
+                        label = "unlabelled"
+                    else:
+                        # ignore the information (intensity/weight/repetition)
+                        label = row[3]
+                else:
+                    raise Exception("Bad format")
+                if label != "":
+                    old_data = label_data_mapping.get(label, [])
+                    old_data.append(new_data)
+                    label_data_mapping[label] = old_data
 
-            X = np.transpose(np.reshape(np.asarray(X, dtype=float), (len(X), len(X[0]))))
+            for label in label_data_mapping:
+                X = label_data_mapping[label]
+                label_data_mapping[label] = np.transpose(np.reshape(np.asarray(X, dtype=float), (len(X), len(X[0]))))
 
-        return X, label
+        return label_data_mapping
 
     # Load label mapping and train / test data from disk.
     def __init__(self, directory, test_directory=None, label_mapper=lambda x: x):
         """Load the dataset data from the directory.
-        
+
         If two directories are passed the second is interpreted as the test dataset. If only one dataset gets passed,
-         this dataset will get split into test and train. The label_mapper`allows to modify loaded labels. This is 
+         this dataset will get split into test and train. The label_mapper`allows to modify loaded labels. This is
          useful e.g. to map multiple labels to a single on ("arms/biceps-curl" --> "-/exercising", ...)."""
 
         self.logger.info("Loading DS from files...")
         self.augmenter = SignalAugmenter(augmentation_start=0.1, augmentation_end=0.9)
-        
+
         # If we get provided with a test directory, we are going to use that. Otherwise we will split the dataset in
         # test and train on our own.
         if test_directory:
@@ -131,13 +152,13 @@ class AccelerationDataset(object):
         print "Augmented `train` with %d examples, %d originally" % (
             augmented_train.num_examples - train.num_examples, train.num_examples)
         augmented_train.shuffle()
-        augmented_train.scale_features(self.Feature_Range, self.Feature_Mean)
+        # augmented_train.scale_features(self.Feature_Range, self.Feature_Mean)
 
         augmented_test = self.augmenter.augment_examples(test, 400)
         print "Augmented `test` with %d examples, %d originally" % (
             augmented_test.num_examples - test.num_examples, test.num_examples)
         augmented_test.shuffle()
-        augmented_test.scale_features(self.Feature_Range, self.Feature_Mean)
+        # augmented_test.scale_features(self.Feature_Range, self.Feature_Mean)
 
         self.id_label_mapping = {v: k for k, v in self.label_id_mapping.items()}
         self.X_train = self.flatten2d(augmented_train.features)
