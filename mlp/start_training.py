@@ -49,17 +49,17 @@ def visualise_dataset(dataset, output_image):
     savefig(output_image)
 
 
-def learn_model_from_data(dataset, working_directory):
+def learn_model_from_data(dataset, working_directory, model_name):
     """Use MLP to train the dataset and generate result in working_directory"""
     mlpmodel = MLPMeasurementModel(working_directory)
 
     trained_model = mlpmodel.train(dataset)
 
-    dataset.save_labels(os.path.join(working_directory, 'demo.labels.txt'))
-    neon2iosmlp.convert(mlpmodel.model_path, os.path.join(working_directory, 'demo.weights.raw'))
+    dataset.save_labels(os.path.join(working_directory, model_name + '_model.labels.txt'))
+    neon2iosmlp.convert(mlpmodel.model_path, os.path.join(working_directory, model_name + '_model.weights.raw'))
 
     layers = mlpmodel.getLayer(dataset, trained_model)
-    neon2iosmlp.write_model_to_file(layers, os.path.join(working_directory, 'demo.layers.txt'))
+    neon2iosmlp.write_model_to_file(layers, os.path.join(working_directory, model_name + '_model.layers.txt'))
 
     return mlpmodel, trained_model
 
@@ -110,7 +110,7 @@ def write_to_csv(filename, data):
     file.close()
 
 
-def main(dataset_directory, working_directory, evaluation_file, visualise_image):
+def main(dataset_directory, working_directory, evaluation_file, visualise_image, model_name):
     """Main entry point."""
 
     # 1/ Load the dataset
@@ -124,7 +124,7 @@ def main(dataset_directory, working_directory, evaluation_file, visualise_image)
     visualise_dataset(dataset, visualise_image)
 
     # 3/ Train the dataset using MLP
-    mlpmodel, trained_model = learn_model_from_data(dataset, working_directory)
+    mlpmodel, trained_model = learn_model_from_data(dataset, working_directory, model_name)
 
     # 4/ Evaluate the trained model
     table = show_evaluation(trained_model, dataset)
@@ -140,6 +140,7 @@ if __name__ == '__main__':
     parser.add_argument('-o', metavar='output', default='./output', type=str, help="folder containing generated model")
     parser.add_argument('-e', metavar='evaluation', default='./output/evaluation.csv', type=str, help="evaluation csv file output")
     parser.add_argument('-v', metavar='visualise', default='./output/visualisation.png', type=str, help="visualisation dataset image output")
+    parser.add_argument('-m', metavar='modelname', default='arms', type=str, help="prefix name of model")
     args = parser.parse_args()
 
-    sys.exit(main(args.d, args.o, args.e, args.v))
+    sys.exit(main(args.d, args.o, args.e, args.v, args.m))
