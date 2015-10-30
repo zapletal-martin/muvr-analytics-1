@@ -55,11 +55,11 @@ def learn_model_from_data(dataset, working_directory):
 
     trained_model = mlpmodel.train(dataset)
 
-    dataset.save_labels(os.path.join(working_directory, 'labels.txt'))
-    neon2iosmlp.convert(mlpmodel.model_path, os.path.join(working_directory, 'weights.raw'))
+    dataset.save_labels(os.path.join(working_directory, 'demo.labels.txt'))
+    neon2iosmlp.convert(mlpmodel.model_path, os.path.join(working_directory, 'demo.weights.raw'))
 
     layers = mlpmodel.getLayer(dataset, trained_model)
-    neon2iosmlp.write_model_to_file(layers, os.path.join(working_directory, 'layers.txt'))
+    neon2iosmlp.write_model_to_file(layers, os.path.join(working_directory, 'demo.layers.txt'))
 
     return mlpmodel, trained_model
 
