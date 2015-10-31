@@ -146,6 +146,6 @@ if __name__ == '__main__':
 
     #
     # A good example of command-line params is
-    # -d ../../muvr-training-data/labelled/core -o ../output/ -v ../output/v.png -e  ../output/e.csv
+    # -m core -d ../../muvr-training-data/labelled/core -o ../output/ -v ../output/v.png -e  ../output/e.csv
     #
     sys.exit(main(args.d, args.o, args.e, args.v, args.m))
