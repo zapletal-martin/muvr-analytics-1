@@ -30,7 +30,7 @@ cd -
 
 # Install Spark
 cd $VENV
-wget http://www.eu.apache.org/dist/spark/spark-1.5.1/spark-1.5.1-bin-hadoop2.6.tgz
+curl http://www.eu.apache.org/dist/spark/spark-1.5.1/spark-1.5.1-bin-hadoop2.6.tgz -o spark-1.5.1-bin-hadoop2.6.tgz
 if ! [ `command -v pv` ]
 then
   brew install pv
