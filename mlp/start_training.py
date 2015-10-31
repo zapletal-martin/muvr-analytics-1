@@ -141,7 +141,7 @@ if __name__ == '__main__':
     parser.add_argument('-o', metavar='output', default='./output', type=str, help="folder containing generated model")
     parser.add_argument('-e', metavar='evaluation', default='./output/evaluation.csv', type=str, help="evaluation csv file output")
     parser.add_argument('-v', metavar='visualise', default='./output/visualisation.png', type=str, help="visualisation dataset image output")
-    parser.add_argument('-m', metavar='modelname', default='arms', type=str, help="prefix name of model")
+    parser.add_argument('-m', metavar='modelname', type=str, help="prefix name of model")
     args = parser.parse_args()
 
     #
