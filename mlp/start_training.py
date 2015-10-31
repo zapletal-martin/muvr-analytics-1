@@ -134,16 +134,18 @@ def main(dataset_directory, working_directory, evaluation_file, visualise_image,
 
     # 5/ Print the evaluation table to csv file
     write_to_csv(evaluation_file, table)
-
-
 if __name__ == '__main__':
     """List arguments for this program"""
     parser = argparse.ArgumentParser(description='Train and evaluate the exercise dataset.')
-    parser.add_argument('-d', metavar='dataset', default='./dataset/*.zip', type=str, help="folder containing exercise dataset")
+    parser.add_argument('-d', metavar='dataset', type=str, help="folder containing exercise dataset")
     parser.add_argument('-o', metavar='output', default='./output', type=str, help="folder containing generated model")
     parser.add_argument('-e', metavar='evaluation', default='./output/evaluation.csv', type=str, help="evaluation csv file output")
     parser.add_argument('-v', metavar='visualise', default='./output/visualisation.png', type=str, help="visualisation dataset image output")
     parser.add_argument('-m', metavar='modelname', default='arms', type=str, help="prefix name of model")
     args = parser.parse_args()
 
+    #
+    # A good example of command-line params is
+    # -d ../../muvr-training-data/labelled/core -o ../output/ -v ../output/v.png -e  ../output/e.csv
+    #
     sys.exit(main(args.d, args.o, args.e, args.v, args.m))

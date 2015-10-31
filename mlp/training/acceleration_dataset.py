@@ -53,11 +53,16 @@ class AccelerationDataset(object):
         f.close()
 
     def load_examples(self, path, label_mapper):
-        """Load examples contained in the path into an example collection. Examples need to be stored in CSVs.
+        """
+        Load examples contained in the path into an example collection. Examples need to be stored in CSVs.
 
         The label_mapper allows to map a loaded label to a different label, e.g. to combine multiple labels into one.
+
         Arguments:
-        path -- can be directory or zipfile. If zipfile, it will be extract to a tmp path with prefix /tmp/muvr-training-
+
+        :param path: can be directory or zipfile. If zipfile, it will be extracted to a temporary path with prefix ``/tmp/muvr-training-``
+        :param label_mapper: the mapper
+        :return:
         """
         self.label_id_mapping = {}
         root_directory = ""
@@ -77,7 +82,7 @@ class AccelerationDataset(object):
                     csv_files.append(f)
 
         os.path.walk(root_directory, append_csv_file, None)
-        Xs = []
+        xs = []
         ys = []
         for f in csv_files:
             label_dictionary = self.load_example(f)
@@ -85,10 +90,10 @@ class AccelerationDataset(object):
                 label = label_mapper(read_label)
                 if label not in self.label_id_mapping:
                     self.label_id_mapping[label] = len(self.label_id_mapping)
-                Xs.append(X)
+                xs.append(X)
                 ys.append(self.label_id_mapping[label])
 
-        return ExampleColl(Xs, ys)
+        return ExampleColl(xs, ys)
 
     @staticmethod
     def load_example(filename):
@@ -101,8 +106,6 @@ class AccelerationDataset(object):
             csv_data = csv.reader(csvfile, dialect)
             label_data_mapping = {}
             for row in csv_data:
-                label = ""
-                new_data = []
                 if len(row) == 7:
                     # New format (len = 7)
                     #   X | Y | Z | '' | '' | '' | ''(without label)
@@ -121,13 +124,17 @@ class AccelerationDataset(object):
                     label_data_mapping[label] = old_data
 
             for label in label_data_mapping:
-                X = label_data_mapping[label]
-                label_data_mapping[label] = np.transpose(np.reshape(np.asarray(X, dtype=float), (len(X), len(X[0]))))
+                x = label_data_mapping[label]
+                label_data_mapping[label] = np.transpose(np.reshape(np.asarray(x, dtype=float), (len(x), len(x[0]))))
 
         return label_data_mapping
 
+    def generate_examples(self, examples):
+
+        return examples
+
     # Load label mapping and train / test data from disk.
-    def __init__(self, directory, test_directory=None, label_mapper=lambda x: x):
+    def __init__(self, directory, test_directory=None, label_mapper=lambda x: x, add_generated_examples = True):
         """Load the dataset data from the directory.
 
         If two directories are passed the second is interpreted as the test dataset. If only one dataset gets passed,
@@ -147,6 +154,10 @@ class AccelerationDataset(object):
             examples.shuffle()
 
             train, test = examples.split(self.TRAIN_RATIO)
+
+        if add_generated_examples:
+            train = self.generate_examples(train)
+            test = self.generate_examples(test)
 
         augmented_train = self.augmenter.augment_examples(train, 400)
         print "Augmented `train` with %d examples, %d originally" % (
