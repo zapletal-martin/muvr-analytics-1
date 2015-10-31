@@ -20,6 +20,9 @@ pip install --download-cache=cache -r muvr.pip
 # Insteall neon latest
 git clone --branch v1.1.0 https://github.com/NervanaSystems/neon.git $VENV/neon
 cd $VENV/neon
+git checkout 339511a
+cd -
+cd $VENV/neon
 make sysinstall
 cd -
 
