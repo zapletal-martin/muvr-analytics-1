@@ -23,7 +23,7 @@ class MLPMeasurementModel(object):
     Callback_Store_Filename = 'workout-mlp.h5'
     Intermediate_Model_Filename = 'workout-mlp-ep'
 
-    def __init__(self, root_path, lrate=0.01, batch_size=30, max_epochs=30):
+    def __init__(self, root_path, lrate=0.01, batch_size=30, max_epochs=10):
         """Initialize paths and loggers of the model."""
         # Storage director of the model and its snapshots
         self.root_path = root_path
@@ -104,8 +104,8 @@ class MLPMeasurementModel(object):
                 "evaluation_freq": 1,
                 "progress_bar": True,
                 "epochs": 1,
-                "save_path": None,
-                "serialize": 0,
+                "save_path": os.path.join(self.root_path, self.Intermediate_Model_Filename),
+                "serialize": 1,
                 "history": 1,
                 "model_file": None}
         callbacks = Callbacks(model, dataset.train(), ap.Namespace(**args), eval_set=dataset.test())

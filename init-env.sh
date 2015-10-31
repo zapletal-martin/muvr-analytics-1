@@ -18,7 +18,7 @@ source $VENV/bin/activate
 pip install --download-cache=cache -r muvr.pip
 
 # Insteall neon latest
-git clone https://github.com/NervanaSystems/neon.git $VENV/neon
+git clone --branch v1.1.0 https://github.com/NervanaSystems/neon.git $VENV/neon
 cd $VENV/neon
 make sysinstall
 cd -
@@ -30,12 +30,12 @@ cd -
 
 # Install Spark
 cd $VENV
-curl http://www.eu.apache.org/dist/spark/spark-1.5.1/spark-1.5.1-bin-hadoop2.6.tgz -o spark-1.5.1-bin-hadoop2.6.tgz
-if ! [ `command -v pv` ]
-then
-  brew install pv
-fi
-[ $(pv spark-1.5.1-bin-hadoop2.6.tgz | tar xzf -) ] || tar xzf spark-1.5.1-bin-hadoop2.6.tgz
+#curl http://www.eu.apache.org/dist/spark/spark-1.5.1/spark-1.5.1-bin-hadoop2.6.tgz -o spark-1.5.1-bin-hadoop2.6.tgz
+#if ! [ `command -v pv` ]
+#then
+#  brew install pv
+#fi
+#[ $(pv spark-1.5.1-bin-hadoop2.6.tgz | tar xzf -) ] || tar xzf spark-1.5.1-bin-hadoop2.6.tgz
 cd -
 cat >> $VENV/bin/activate << EOF
 export SPARK_HOME=`pwd`/$VENV/spark-1.5.1-bin-hadoop2.6
